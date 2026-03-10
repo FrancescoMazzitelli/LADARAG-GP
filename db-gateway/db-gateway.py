@@ -12,8 +12,16 @@ import sys
 import logging
 import bson
 import json
+import signal, sys
 
 from sentence_transformers import SentenceTransformer, CrossEncoder
+
+
+
+def handle_sigterm(*args):
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 log_file_path = "test.txt"
 logging.basicConfig(

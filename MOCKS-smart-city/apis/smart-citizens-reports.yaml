@@ -3,8 +3,9 @@ info:
   title: Smart Citizens Reports API
   version: 1.0
   description: |-
-    Smart Citizens Reports API for managing reports submitted by citizens regarding city services, infrastructure, and public issues. Compatible with the City Incident Management System, this service allows interaction with citizen report references.
-    Supports creation, lookup, update, and deletion of citizen reports including status tracking and categorization.
+    Smart Citizens Reports API empowering residents of Benevento to actively participate in urban maintenance and safety. This API facilitates the submission, categorization, and lifecycle tracking of civic issues.
+    
+    Integrated seamlessly with the City Incident Management System, it handles reports ranging from infrastructure damage and sanitation needs to public safety hazards, ensuring transparent communication between citizens and municipal authorities.
   contact:
     name: Smart City Development Team
 
@@ -35,7 +36,7 @@ components:
             id:
               type: integer
               format: int64
-              description: Unique identifier for the citizen report
+              description: Unique, auto-generated ticket identifier for the citizen report.
           required:
             - id
 
@@ -44,24 +45,24 @@ components:
       properties:
         reporterName:
           type: string
-          description: Name of the citizen reporting the issue
+          description: Full name or registered alias of the citizen submitting the issue (supports anonymous submissions if handled by the client).
         location:
           type: string
-          description: Location of the issue reported
+          description: Descriptive location or precise address where the reported issue is occurring.
         category:
           type: string
-          description: Category of the report (e.g., sanitation, infrastructure, safety)
+          description: High-level classification of the issue (e.g., 'sanitation', 'infrastructure', 'safety', 'lighting', 'traffic').
         description:
           type: string
-          description: Detailed description of the issue
+          description: Detailed textual explanation of the problem, optionally including specific context or hazards.
         status:
           type: string
           enum: [open, in_progress, resolved, closed]
-          description: Current status of the report
+          description: Current lifecycle state of the ticket. Transitions from 'open' to 'in_progress', and finally 'resolved' or 'closed'.
         submittedAt:
           type: string
           format: date-time
-          description: Timestamp when the report was submitted
+          description: ISO-8601 formatted timestamp recording the exact moment the report was received by the system.
       required:
         - reporterName
         - location
@@ -73,7 +74,8 @@ components:
 paths:
   /health:
     get:
-      description: Health check
+      description: Performs a lightweight health check to verify that the Citizen Reports microservice is operational.
+      summary: Health check
       responses:
         "200":
           content:
@@ -86,10 +88,11 @@ paths:
 
   /citizen-report:
     get:
-      description: List all citizen reports
+      description: Retrieves a comprehensive list of all reports submitted by citizens, providing an overview of pending and resolved urban issues.
+      summary: List all citizen reports
       responses:
         "200":
-          description: List of all citizen reports
+          description: A JSON array containing the collection of citizen reports.
           content:
             application/json:
               schema:
@@ -100,22 +103,23 @@ paths:
                 example_list:
                   value:
                     - id: 1
-                      reporterName: "John Doe"
-                      location: "5th Ave and Main St"
+                      reporterName: "Mario Rossi"
+                      location: "Piazza Castello, Benevento"
                       category: "sanitation"
-                      description: "Overflowing garbage bin causing bad smell"
+                      description: "Cestino traboccante di rifiuti vicino all'ingresso della Rocca dei Rettori."
                       status: "open"
                       submittedAt: "2025-09-24T14:30:00Z"
                     - id: 2
-                      reporterName: "Jane Smith"
-                      location: "Central Park"
+                      reporterName: "Giulia Bianchi"
+                      location: "Via Posillipo, Benevento"
                       category: "infrastructure"
-                      description: "Broken street light needs repair"
+                      description: "Buca pericolosa e profonda sul manto stradale."
                       status: "in_progress"
                       submittedAt: "2025-09-23T09:15:00Z"
 
     post:
-      description: Submit a new citizen report
+      description: Submits a new citizen report to the city's Incident Management System. Triggers the creation of a new ticket for municipal review.
+      summary: Submit new citizen report
       requestBody:
         required: true
         content:
@@ -125,15 +129,15 @@ paths:
             examples:
               new_report:
                 value:
-                  reporterName: "Alice Johnson"
-                  location: "Riverfront Blvd"
+                  reporterName: "Luigi Esposito"
+                  location: "Ponte Vanvitelli, Benevento"
                   category: "safety"
-                  description: "Damaged guardrail on the pedestrian bridge"
+                  description: "Lampione spento che rende l'attraversamento pedonale molto insicuro nelle ore serali."
                   status: "open"
                   submittedAt: "2025-09-25T11:00:00Z"
       responses:
         "201":
-          description: Citizen report created
+          description: Citizen report successfully received and ticket created.
           content:
             application/json:
               schema:
@@ -142,16 +146,17 @@ paths:
                 created:
                   value:
                     id: 3
-                    reporterName: "Alice Johnson"
-                    location: "Riverfront Blvd"
+                    reporterName: "Luigi Esposito"
+                    location: "Ponte Vanvitelli, Benevento"
                     category: "safety"
-                    description: "Damaged guardrail on the pedestrian bridge"
+                    description: "Lampione spento che rende l'attraversamento pedonale molto insicuro nelle ore serali."
                     status: "open"
                     submittedAt: "2025-09-25T11:00:00Z"
 
   /citizen-report/{id}:
     get:
-      description: Get a citizen report by its ID (used as reference in City Incident Management System)
+      description: Fetches the full details and current status of a specific citizen report using its unique ticket ID.
+      summary: Get citizen report details by ID
       parameters:
         - name: id
           in: path
@@ -164,7 +169,7 @@ paths:
               value: 1
       responses:
         "200":
-          description: Citizen report details
+          description: Detailed information regarding the requested citizen report.
           content:
             application/json:
               schema:
@@ -173,17 +178,18 @@ paths:
                 report_1:
                   value:
                     id: 1
-                    reporterName: "John Doe"
-                    location: "5th Ave and Main St"
+                    reporterName: "Mario Rossi"
+                    location: "Piazza Castello, Benevento"
                     category: "sanitation"
-                    description: "Overflowing garbage bin causing bad smell"
+                    description: "Cestino traboccante di rifiuti vicino all'ingresso della Rocca dei Rettori."
                     status: "open"
                     submittedAt: "2025-09-24T14:30:00Z"
         "404":
-          description: Citizen report not found
+          description: The specified report ID does not exist in the database.
 
     put:
-      description: Update a citizen report by ID
+      description: Updates an existing citizen report. Typically used by city officials or automated systems to update the ticket's resolution status or amend descriptions.
+      summary: Update citizen report by ID
       parameters:
         - name: id
           in: path
@@ -202,15 +208,15 @@ paths:
             examples:
               update:
                 value:
-                  reporterName: "John Doe"
-                  location: "5th Ave and Main St"
+                  reporterName: "Mario Rossi"
+                  location: "Piazza Castello, Benevento"
                   category: "sanitation"
-                  description: "Overflowing garbage bin has been emptied"
+                  description: "Cestino traboccante di rifiuti vicino all'ingresso della Rocca dei Rettori - Intervento completato."
                   status: "resolved"
                   submittedAt: "2025-09-24T14:30:00Z"
       responses:
         "200":
-          description: Citizen report updated
+          description: Citizen report successfully updated.
           content:
             application/json:
               schema:
@@ -219,17 +225,18 @@ paths:
                 updated:
                   value:
                     id: 1
-                    reporterName: "John Doe"
-                    location: "5th Ave and Main St"
+                    reporterName: "Mario Rossi"
+                    location: "Piazza Castello, Benevento"
                     category: "sanitation"
-                    description: "Overflowing garbage bin has been emptied"
+                    description: "Cestino traboccante di rifiuti vicino all'ingresso della Rocca dei Rettori - Intervento completato."
                     status: "resolved"
                     submittedAt: "2025-09-24T14:30:00Z"
         "404":
-          description: Citizen report not found
+          description: The specified report ID was not found.
 
     delete:
-      description: Delete a citizen report by ID
+      description: Deletes a specific citizen report from the system. Usually reserved for removing spam, duplicates, or erroneous submissions.
+      summary: Delete citizen report by ID
       parameters:
         - name: id
           in: path
@@ -241,21 +248,22 @@ paths:
               value: 1
       responses:
         "204":
-          description: Deleted successfully
+          description: The report was successfully deleted. No content is returned.
           content:
             text/plain:
               examples:
                 deleted:
                   value: "Citizen report deleted"
         "404":
-          description: Citizen report not found
+          description: The specified report ID was not found.
 
   /register:
     post:
-      description: Register this service to the discovery system
+      description: Registers this microservice with the central discovery registry (e.g., Consul) to allow routing and integration with other Smart City components.
+      summary: Register service to Consul
       responses:
         "200":
-          description: Registration success
+          description: Service successfully registered.
           content:
             application/json:
               schema:
@@ -267,7 +275,7 @@ paths:
                     httpCode: 200
                     message: "Service registered"
         "500":
-          description: Registration failure
+          description: Internal server error preventing successful registration.
           content:
             application/json:
               schema:

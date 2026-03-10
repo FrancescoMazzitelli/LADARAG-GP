@@ -3,8 +3,9 @@ info:
   title: Smart Lighting API
   version: 1.0
   description: |-
-    Smart Lighting API for managing smart street lights in the city. Compatible with the Smart Infrastructure platform, this service allows interaction with light pole references.
-    Supports creation, lookup, update, and deletion of lighting units, including their availability and energy consumption data.
+    Smart Lighting API for managing, monitoring, and controlling the urban street lighting infrastructure. Compatible with the Benevento Smart Infrastructure platform, this service allows interaction with individual light poles and lighting grids.
+    
+    It supports the creation, lookup, update, and deletion of lighting units. Key features include real-time brightness adjustment, operational status tracking (e.g., detecting malfunctions), and detailed energy consumption telemetry to optimize the city's power efficiency.
   contact:
     name: Smart City Development Team
 
@@ -35,7 +36,7 @@ components:
             id:
               type: integer
               format: int64
-              description: Unique identifier for the light pole
+              description: Unique, auto-generated database identifier for the street light pole.
           required:
             - id
 
@@ -44,21 +45,21 @@ components:
       properties:
         location:
           type: string
-          description: Location of the light pole
+          description: Precise physical location or topographical reference of the light pole (e.g., street name, intersection, or landmark proximity).
         status:
           type: string
           enum: [on, off, malfunctioning]
-          description: Operational status of the light
+          description: Current operational state of the light emitting unit. 'malfunctioning' indicates a hardware failure or connectivity drop.
         brightness:
           type: integer
-          description: Brightness level (0–100)
+          description: Current dimming or brightness level expressed as a percentage (0 = off, 100 = maximum output).
         energyConsumption:
           type: number
           format: float
-          description: Energy usage in kWh
+          description: Accumulated energy usage in kilowatt-hours (kWh) over the current billing or monitoring cycle.
         smartEnabled:
           type: boolean
-          description: Whether smart automation is enabled
+          description: Flag indicating if the pole is equipped with autonomous smart sensors (e.g., motion-based dimming, ambient light detection).
       required:
         - location
         - status
@@ -69,7 +70,8 @@ components:
 paths:
   /health:
     get:
-      description: Health check
+      description: Performs a shallow health check to verify that the Smart Lighting microservice is reachable and responsive.
+      summary: Health check endpoint
       responses:
         "200":
           content:
@@ -82,10 +84,11 @@ paths:
 
   /light:
     get:
-      description: List all smart lights
+      description: Retrieves a comprehensive list of all smart street lights deployed in the city, including their current telemetry, brightness, and operational status.
+      summary: List all smart lights
       responses:
         "200":
-          description: List of all smart lights
+          description: A JSON array containing the list of all registered smart lights.
           content:
             application/json:
               schema:
@@ -96,20 +99,21 @@ paths:
                 example_list:
                   value:
                     - id: 101
-                      location: "Main Street - Pole 12"
+                      location: "Corso Garibaldi - Palo 12, Benevento"
                       status: "on"
                       brightness: 80
                       energyConsumption: 1.25
                       smartEnabled: true
                     - id: 102
-                      location: "Broadway Ave - Pole 5"
+                      location: "Viale San Lorenzo - Palo 5, Benevento"
                       status: "off"
                       brightness: 0
                       energyConsumption: 0.0
                       smartEnabled: false
 
     post:
-      description: Create a new smart light entry
+      description: Registers a newly installed smart light pole into the city's infrastructure grid, setting its initial configuration and location.
+      summary: Register new smart light
       requestBody:
         required: true
         content:
@@ -119,14 +123,14 @@ paths:
             examples:
               new_light:
                 value:
-                  location: "Liberty Blvd - Pole 7"
+                  location: "Piazza Santa Sofia - Palo 7, Benevento"
                   status: "on"
                   brightness: 90
                   energyConsumption: 1.35
                   smartEnabled: true
       responses:
         "201":
-          description: Smart light created
+          description: Smart light successfully registered and added to the grid.
           content:
             application/json:
               schema:
@@ -135,7 +139,7 @@ paths:
                 created:
                   value:
                     id: 103
-                    location: "Liberty Blvd - Pole 7"
+                    location: "Piazza Santa Sofia - Palo 7, Benevento"
                     status: "on"
                     brightness: 90
                     energyConsumption: 1.35
@@ -143,7 +147,8 @@ paths:
 
   /light/{id}:
     get:
-      description: Get a smart light by its ID (used as reference in Infrastructure system)
+      description: Fetches real-time telemetry and configuration data for a specific street light by its unique identifier.
+      summary: Get smart light details by ID
       parameters:
         - name: id
           in: path
@@ -156,7 +161,7 @@ paths:
               value: 101
       responses:
         "200":
-          description: Smart light details
+          description: Detailed information about the requested smart light.
           content:
             application/json:
               schema:
@@ -165,16 +170,17 @@ paths:
                 light_101:
                   value:
                     id: 101
-                    location: "Main Street - Pole 12"
+                    location: "Corso Garibaldi - Palo 12, Benevento"
                     status: "on"
                     brightness: 80
                     energyConsumption: 1.25
                     smartEnabled: true
         "404":
-          description: Smart light not found
+          description: The specified smart light ID does not exist in the registry.
 
     put:
-      description: Update a smart light by ID
+      description: Updates the configuration or status of a specific smart light (e.g., remote toggling, adjusting brightness, or flagging it for maintenance).
+      summary: Update smart light by ID
       parameters:
         - name: id
           in: path
@@ -193,14 +199,14 @@ paths:
             examples:
               update:
                 value:
-                  location: "Main Street - Pole 12"
+                  location: "Corso Garibaldi - Palo 12, Benevento"
                   status: "off"
                   brightness: 0
                   energyConsumption: 0.0
                   smartEnabled: true
       responses:
         "200":
-          description: Smart light updated
+          description: Smart light data successfully updated.
           content:
             application/json:
               schema:
@@ -209,16 +215,17 @@ paths:
                 updated:
                   value:
                     id: 101
-                    location: "Main Street - Pole 12"
+                    location: "Corso Garibaldi - Palo 12, Benevento"
                     status: "off"
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: true
         "404":
-          description: Smart light not found
+          description: The specified smart light ID was not found.
 
     delete:
-      description: Delete a smart light by ID
+      description: Permanently removes a smart light pole from the city's infrastructure registry (e.g., due to removal or replacement).
+      summary: Delete smart light by ID
       parameters:
         - name: id
           in: path
@@ -230,21 +237,22 @@ paths:
               value: 101
       responses:
         "204":
-          description: Deleted successfully
+          description: The smart light was successfully deleted from the system. No content is returned.
           content:
             text/plain:
               examples:
                 deleted:
                   value: "Smart light deleted"
         "404":
-          description: Smart light not found
+          description: The specified smart light ID was not found.
 
   /register:
     post:
-      description: Register this service to the discovery system
+      description: Automatically registers this microservice with the central discovery system (e.g., Consul) to enable inter-service communication.
+      summary: Register service with discovery system
       responses:
         "200":
-          description: Registration success
+          description: Service successfully registered with the discovery node.
           content:
             application/json:
               schema:
@@ -256,7 +264,7 @@ paths:
                     httpCode: 200
                     message: "Service registered"
         "500":
-          description: Registration failure
+          description: Internal server error preventing successful registration.
           content:
             application/json:
               schema:
