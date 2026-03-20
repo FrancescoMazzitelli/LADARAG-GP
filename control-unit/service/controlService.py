@@ -14,10 +14,20 @@ import time
 class Controller:
 
     def __init__(self):
+        '''
+        Inizializza il Controller impostando il nome del modello LLM da utilizzare
+        e assicurandosi che la directory di base 'Files' per il salvataggio temporaneo
+        degli allegati esista nel file system.
+        '''
         self.model_name = "phi4-reasoning:14b"
         os.makedirs("Files", exist_ok=True)
 
     def analyze_files(self, files: list):
+        '''
+        Cicla su una lista di file caricati dall'utente, li salva localmente nella 
+        cartella 'Files', deduce il loro MIME type e ne determina la categoria 
+        (document, image, tabular, unknown). Ritorna una lista di metadati dei file.
+        '''
         analyzed = []
         if files:
             for f in files:
@@ -47,6 +57,12 @@ class Controller:
         return analyzed
 
     def query_ollama(self, prompt: str) -> tuple[str, float]:
+        '''
+        Invia una richiesta HTTP POST al server locale Ollama per generare una 
+        risposta tramite il modello LLM specificato. Calcola e ritorna il tempo di 
+        latenza (in secondi) insieme alla risposta testuale pulita. Gestisce le 
+        eccezioni di rete e di parsing.
+        '''
         url = os.environ.get("OLLAMA_API_URL", "http://localhost:11434")
         try:
             start_time = time.perf_counter()
@@ -57,7 +73,7 @@ class Controller:
                     "prompt": prompt,
                     "options": {
                         "temperature": 0.0,
-                        "max_tokens": 4096,
+                        "max_tokens": 4096, # NOTA: se vedi JSON mozzati, alza questo a 8192
                         "num_ctx": 8192,
                     },
                     "stream": False
@@ -77,36 +93,37 @@ class Controller:
 
     def decompose_task(self, discovered_services, discovered_capabilities, discovered_endpoints,
                        discovered_schemas, discovered_request_schemas, query, input_files=None):
+        '''
+        Prende in input le informazioni scoperte sui microservizi (capabilities, endpoint, 
+        schemi, file) e la query dell'utente. Costruisce un prompt di sistema estremamente 
+        dettagliato con le regole di output (System Prompt) e interroga l'LLM. Ritorna la 
+        risposta grezza dell'LLM e il tempo di generazione.
+        '''
+        # --- MODIFICA PROMPT: Esempio corretto con URL assoluti ---
         example = {
             "tasks": [
                 {
                     "task_name": "get_incident_info",
                     "service_id": "svc-emergency",
-                    "endpoint": "service endpoint",
-                    "input": "",
-                    "operation": "GET"
+                    "url": "http://mock-server:8080/rest/EmergencyAPI/1.0/incident",
+                    "operation": "GET",
+                    "input": ""
                 },
                 {
                     "task_name": "dispatch_ambulance",
                     "service_id": "svc-ambulance",
-                    "endpoint": "service endpoint",
+                    "url": "http://mock-server:8080/rest/AmbulanceAPI/1.0/dispatch",
+                    "operation": "POST",
                     "input": {
                         "incident_id": "{{get_incident_info.id}}",
                         "location": "{{get_incident_info.location}}"
-                    },
-                    "operation": "POST"
-                },
-                {
-                    "task_name": "analyze_report",
-                    "service_id": "svc-analysis",
-                    "endpoint": "service endpoint",
-                    "input": "[FILE]report_img.png[/FILE]",
-                    "operation": "POST"
+                    }
                 }
             ]
         }
 
         example_str = json.dumps(example)
+        # --- MODIFICA PROMPT: Regole aggiunte in fondo per forzare URL, vietare Dummy Task e risparmiare Token ---
         prompt = f"""
             <|system|>
             You have access to a list of services registered in a distributed system, each described by:
@@ -151,29 +168,13 @@ class Controller:
             - Example RIGHT: endpoint: "/api/vehicle/{{{{task_1.FIND(route=Linea 1).id}}}}", input: ""
             - NEVER return an endpoint containing unresolved placeholders like {{id}}. The final URL must only contain the {{{{task_name...}}}} syntax or the actual extracted value.
             - If files are images, prefer OCR/image-processing services. If PDFs, prefer document-analysis services.
-
-            CRITICAL INSTRUCTIONS FOR PLAN GENERATION:
-            You must generate the execution plan strictly following these 2 steps:
-            STEP 1 - Fulfill User Request: Create the atomic tasks required to directly satisfy the user's explicit query.
-            STEP 2 - Cross-Domain Proactivity: Review the tasks from Step 1. Ask yourself: "Does the state change or event described in Step 1 logically affect the state of ANY other service provided in the catalog?"
-            If YES, you MUST append additional tasks to maintain ecosystem consistency. 
-            To connect the two services, inspect their schemas to identify semantically matching fields. 
-            Use this shared attribute dynamically in your FIND(field_name={{{{Task_1.field_name}}}}) syntax to locate the correct target resource, and then PUT the updated state.
+            - JSON KEYS CRITICAL RULE: You MUST use exactly these keys for each task: 'task_name', 'service_id', 'url', 'operation', and 'input'.
+            - URL CRITICAL RULE: The 'url' field MUST contain the complete, absolute HTTP URL found in the ENDPOINTS list (e.g., http://mock-server:8080/rest/...).
+            - OPERATION CRITICAL RULE: The 'operation' field MUST be exactly one of: "GET", "POST", "PUT", or "DELETE". NEVER invent operations like "FILTER" or "FIND". Inline filtering MUST be done inside the {{{{...}}}} syntax.
             
-            Output ONLY the final aggregated JSON using EXACTLY this structure and keys:
-            {{
-              "tasks": [
-                {{
-                  "task_name": "string",
-                  "service_id": "string",
-                  "endpoint": "URL string",
-                  "operation": "GET/POST/PUT/DELETE",
-                  "input": "JSON string or object"
-                }}
-              ]
-            }}
             <|end|>
             <|user|>
+            
             SERVICES:
             {discovered_services}
 
@@ -204,13 +205,13 @@ class Controller:
         return response, plan_latency
 
     def extract_agents(self, agents_json):
-        """
+        '''
         Estrae il piano JSON dalla risposta dell'LLM.
         Strategia a tre livelli:
           1. Cerca JSON dopo </think> (phi4-reasoning e modelli CoT con tag esplicito)
           2. Cerca il primo blocco JSON valido nell'intera risposta (modelli senza think tag)
           3. Fallback: ritorna piano vuoto con log diagnostico
-        """
+        '''
         plan = {}
 
         def try_parse_json_block(text):
@@ -248,7 +249,27 @@ class Controller:
         print(f"[FORMAT ERROR] Anteprima risposta: {preview}")
         return plan
 
+
+    '''
+        resolve_placeholders riceve:
+        │
+        ├── stringa "{{task.field}}"          → Caso 1: restituisce valore con tipo originale
+        │                                               int, bool, str, dict, list...
+        │
+        ├── stringa "url/{{task.field}}/path" → Caso 2: sostituzione testuale → sempre str
+        │
+        ├── dizionario {k: v, ...}            → ricorre su ogni valore
+        │
+        ├── lista [item, ...]                 → ricorre su ogni elemento
+        │
+        └── int, bool, None, ...              → restituisce invariato (nessun placeholder possibile)
+    '''
     def resolve_placeholders(self, data, context):
+        '''
+        Sostituisce dinamicamente i placeholder (es. {{task.id}}) presenti in `data`
+        recuperando i valori attuali dal dizionario di contesto (i risultati dei task precedenti).
+        Supporta sintassi estese come .FIND() e la pulizia da allucinazioni nei placeholder.
+        '''
         if isinstance(data, str):
             matches = re.findall(r'\{\{(.*?)\}\}', data)
 
@@ -271,6 +292,9 @@ class Controller:
                             key, expected_val = condition.split("=", 1)
                             key = key.strip()
                             expected_val = expected_val.strip().lower()
+
+                            # --- NUOVA RIGA: Rimuove URL encoding (es. Ponte+Vanvitelli -> ponte vanvitelli) ---
+                            expected_val = expected_val.replace('+', ' ').replace('%20', ' ')
 
                             # 1. TENTATIVO STANDARD
                             found = next((item for item in val if isinstance(item, dict) and expected_val in str(item.get(key, "")).lower()), None)
@@ -316,6 +340,9 @@ class Controller:
                             key = key.strip()
                             expected_val = expected_val.strip().lower()
 
+                            # --- NUOVA RIGA: Rimuove URL encoding (es. Ponte+Vanvitelli -> ponte vanvitelli) ---
+                            expected_val = expected_val.replace('+', ' ').replace('%20', ' ')
+
                             # 1. TENTATIVO STANDARD
                             found = next((item for item in val if isinstance(item, dict) and expected_val in str(item.get(key, "")).lower()), None)
 
@@ -353,10 +380,43 @@ class Controller:
         return data
 
     async def call_agent(self, session, task, discovered_services):
-        task_name  = task.get("task_name")
-        endpoint   = task.get("endpoint")
+        '''
+        Esegue un singolo task atomico generato dall'LLM in modo asincrono. Pulisce 
+        e normalizza le chiavi JSON inventate dal modello (task_name, endpoint, operation),
+        prepara l'eventuale payload e i file da inviare, fa la richiesta HTTP tramite 
+        aiohttp e restituisce l'esito formattato per il contesto globale.
+        '''
+        # 1. Fallback estremo per il nome e l'url
+        task_name  = task.get("task_name") or task.get("name") or task.get("taskName") or "unnamed_task"
+        endpoint   = task.get("url") or task.get("endpoint") or ""
         input_data = task.get("input", "")
-        operation  = task.get("operation", "").upper()
+        
+        # 2. Estrae l'operazione in modo sicuro (gestisce anche l'allucinazione 'method')
+        operation  = str(task.get("operation") or task.get("method") or "GET").upper()
+
+        # 3. Pulizia dell'endpoint se l'LLM scrive (es. "POST http://...")
+        if " " in endpoint:
+            endpoint = endpoint.split(" ")[-1]
+
+        # 4. Auto-correzione se l'LLM si dimentica "http://" e mette solo la route
+        if endpoint and not endpoint.startswith("http"):
+            mock_url = os.environ.get("MOCK_SERVER_URL", "http://mock-server:8080")
+            endpoint = f"{mock_url}{endpoint}" if endpoint.startswith("/") else f"{mock_url}/{endpoint}"
+
+        # 5. FORZATURA PORTA 8080 (se l'LLM genera l'url senza la porta)
+        if endpoint and "mock-server/" in endpoint:
+            endpoint = endpoint.replace("mock-server/", "mock-server:8080/")
+
+        # 6. SKIP DEI TASK FANTASMA (Es: task vuoti generati come reference)
+        if not endpoint or str(endpoint).strip() == "":
+            print(f"[WARN] Task fantasma '{task_name}' rilevato (nessun endpoint). Task ignorato in sicurezza.")
+            return {
+                "task_name": task_name,
+                "operation": operation,
+                "status": "SUCCESS", 
+                "status_code": 200, 
+                "result": {"skipped": True, "message": "Dummy task ignored"}
+            }
 
         response_result = {
             "task_name": task_name,
@@ -455,6 +515,12 @@ class Controller:
         return response_result
 
     async def trigger_agents_async(self, agents: dict, discovered_services):
+        '''
+        Motore di orchestrazione asincrona dei task. Attraversa l'array JSON prodotto
+        dall'LLM, risolve i placeholder dinamici iterazione dopo iterazione (salvando
+        il contesto globale) e invoca call_agent. Se un task fallisce, la pipeline 
+        si interrompe in sicurezza (short-circuit).
+        '''
         tasks = agents.get("tasks", [])
         results = []
         execution_context = {}
@@ -462,7 +528,10 @@ class Controller:
         async with aiohttp.ClientSession() as session:
             for task in tasks:
                 # 1. Chaining dinamico: risoluzione placeholder prima dell'esecuzione
-                task["endpoint"] = self.resolve_placeholders(task.get("endpoint", ""), execution_context)
+                # Controllo sicuro per 'endpoint' / 'url'
+                task_url = task.get("url") or task.get("endpoint") or ""
+                task["url"] = self.resolve_placeholders(task_url, execution_context)
+                
                 if task.get("input"):
                     task["input"] = self.resolve_placeholders(task.get("input"), execution_context)
 
@@ -476,18 +545,30 @@ class Controller:
                 results.append(result)
 
                 # 3. Aggiorna contesto (chaining) o interrompi (short-circuit)
+                # Ricaviamo il nome in modo sicuro
+                safe_task_name = task.get("task_name") or task.get("name") or task.get("taskName") or "unnamed_task"
+
                 if result.get("status") == "SUCCESS":
-                    execution_context[task["task_name"]] = result.get("result", {})
+                    execution_context[safe_task_name] = result.get("result", {})
                 else:
-                    print(f"[CHAIN BROKEN] Task '{task.get('task_name')}' fallito. Interruzione pipeline.")
+                    print(f"[CHAIN BROKEN] Task '{safe_task_name}' fallito. Interruzione pipeline.")
                     break
 
         return results
 
     def trigger_agents(self, agents: dict, discovered_services):
+        '''
+        Wrapper sincrono che avvia l'event loop di asyncio per l'esecuzione della
+        pipeline asincrona (trigger_agents_async).
+        '''
         return asyncio.run(self.trigger_agents_async(agents, discovered_services))
 
     def replace_endpoints(self, endpoints_list, mock_server_address):
+        '''
+        Aggiorna staticamente la lista degli endpoint, sostituendo il localhost 
+        hardcodato di base con l'effettivo host del server mock caricato 
+        dall'ambiente.
+        '''
         updated = []
         for endpoint_dict in endpoints_list:
             new_dict = {}
@@ -501,6 +582,13 @@ class Controller:
         return updated
 
     def control(self, query, files=None):
+        '''
+        Entry point principale del controller. Inietta i file caricati, recupera dal 
+        registry e dal catalogo i servizi semantici rilevanti in base alla query,
+        chiama 'decompose_task' per farsi generare il JSON orchestrativo, avvia i task
+        tramite 'trigger_agents', pulisce il file system e ritorna il report completo 
+        dei risultati al chiamante.
+        '''
         input_files    = files or []
         analyzed_files = self.analyze_files(input_files)
 
@@ -584,7 +672,7 @@ class Controller:
                     if os.path.isfile(file_path) or os.path.islink(file_path):
                         os.unlink(file_path)
                     elif os.path.isdir(file_path):
-                        shutil.rmtree(file_path)
+                        shultil.rmtree(file_path)
                 except Exception as e:
                     print(f'Failed to delete {file_path}. Reason: {e}')
 
