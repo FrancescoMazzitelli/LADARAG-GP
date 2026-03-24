@@ -159,6 +159,7 @@ services:
       - REGISTRY_URL=http://registry:8500
       - CATALOG_URL=http://catalog-gateway:5000
       - OLLAMA_API_URL=http://192.168.250.40:15888
+     # - LLM_MODEL=phi4:14b
       - MOCK_SERVER_URL=http://mock-server:8080
     stop_grace_period: 10s
     depends_on:
