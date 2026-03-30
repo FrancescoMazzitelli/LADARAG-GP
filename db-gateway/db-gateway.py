@@ -167,13 +167,16 @@ def vector_search():
             endpoints    = retrieved.get("endpoints")
             endpoint     = endpoints.get(http_operation)
 
-            # Response schema per questo endpoint
             response_schemas = retrieved.get("response_schemas", {})
             resp_schema      = response_schemas.get(http_operation)
 
-            # Request schema per questo endpoint (solo POST/PUT avranno un valore)
+            # Request schema per questo endpoint
             request_schemas = retrieved.get("request_schemas", {})
             req_schema      = request_schemas.get(http_operation)
+
+            # --- NUOVO: Estrazione dei parametri per questo endpoint ---
+            all_parameters  = retrieved.get("parameters", {})
+            endpoint_params = all_parameters.get(http_operation)
 
             service = {
                 "_id":         doc_id,
@@ -190,6 +193,9 @@ def vector_search():
                 },
                 "request_schemas": {
                     http_operation: req_schema
+                },
+                "parameters": {                      # <--- NUOVO
+                    http_operation: endpoint_params  # <--- NUOVO
                 },
             }
 
@@ -314,14 +320,13 @@ def update_service_schemas(service_id):
       }
     """
     data = request.get_json()
-    if not data:
-        return jsonify({"error": "Empty request body"}), 400
-
     update_fields = {}
     if "response_schemas" in data:
         update_fields["response_schemas"] = data["response_schemas"]
     if "request_schemas" in data:
         update_fields["request_schemas"] = data["request_schemas"]
+    if "parameters" in data:                            # <--- NUOVO
+        update_fields["parameters"] = data["parameters"] # <--- NUOVO
 
     if not update_fields:
         return jsonify({"error": "No valid schema fields provided (expected 'response_schemas' and/or 'request_schemas')"}), 400

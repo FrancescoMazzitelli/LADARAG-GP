@@ -425,6 +425,35 @@ class Service:
         inner = ", ".join(parts)
         return f"{{{inner}}}"
 
+    def _extract_parameters_from_details(self, details):
+        """
+        Estrae query parameter e path parameter da un endpoint.
+        Ritorna una stringa compatta, es: "{zoneId:str*, status:enum}"
+        """
+        params = details.get("parameters", [])
+        if not params:
+            return None
+
+        extracted = {}
+        for p in params:
+            if isinstance(p, dict) and p.get("in") in ["query", "path"]:
+                name = p.get("name")
+                is_required = p.get("required", False)
+                schema = p.get("schema", {})
+                
+                # Usa lo stesso _map_type che usi per il resto
+                param_type = self._map_type(schema)
+                marker = "*" if is_required or p.get("in") == "path" else ""
+                
+                extracted[name] = f"{param_type}{marker}"
+
+        if not extracted:
+            return None
+
+        # Formatta come JSON-like compatto (TOON)
+        inner = ", ".join(f"{k}:{v}" for k, v in extracted.items())
+        return f"{{{inner}}}"
+
     def _build_swagger_url_from_endpoint(self, endpoint_url, mock_server_url):
         """
         Ricostruisce l'URL dello YAML Microcks a partire da un endpoint
@@ -459,65 +488,47 @@ class Service:
         return f"{mock_server_url.rstrip('/')}/api/resources/{filename}"
 
     def _extract_schemas_from_yaml(self, swagger_url):
-        """
-        Metodo principale di estrazione schema per un singolo servizio.
+            try:
+                parser  = prance.ResolvingParser(swagger_url, lazy=False, strict=False)
+                swagger = parser.specification
+            except Exception as e:
+                print(f"Failed to load/resolve YAML from {swagger_url}: {e}")
+                return {"response_schemas": {}, "request_schemas": {}, "parameters": {}}
 
-        Usa prance.ResolvingParser per:
-          1. Scaricare lo YAML dall'URL
-          2. Risolvere tutti i $ref ricorsivamente (allOf, $ref a componenti, ecc.)
-          3. Restituire un dizionario Python completamente espanso
+            response_schemas = {}
+            request_schemas  = {}
+            parameters       = {}
 
-        Poi itera tutti i path/method e chiama i due estrattori:
-          - _extract_schema_from_details    → response schema
-          - _extract_request_schema_from_details → request schema
-
-        Ritorna:
-          {
-            "response_schemas": {"GET /bin": "[{...}]", "POST /bin": "{...}", ...},
-            "request_schemas":  {"POST /bin": "{field:type*, ...}", ...}
-          }
-        """
-        try:
-            # lazy=False: risolve subito tutti i $ref (non in modo lazy)
-            # strict=False: non fallisce su $ref non standard o strutture inusuali
-            parser  = prance.ResolvingParser(
-                swagger_url,
-                lazy=False,
-                strict=False,
-            )
-            swagger = parser.specification  # dizionario Python completamente dereferenziato
-        except Exception as e:
-            print(f"[ENRICH] prance failed ({swagger_url}): {e}")
-            return {"response_schemas": {}, "request_schemas": {}}
-
-        response_schemas = {}
-        request_schemas  = {}
-
-        paths = swagger.get("paths", {})
-        for path, methods in paths.items():
-            if not isinstance(methods, dict):
-                continue
-            for method, details in methods.items():
-                # filtra solo i metodi HTTP rilevanti
-                if method.lower() not in {"get", "post", "put", "delete"}:
+            paths = swagger.get("paths", {})
+            for path, methods in paths.items():
+                if not isinstance(methods, dict):
                     continue
-                if not isinstance(details, dict):
-                    continue
+                for method, details in methods.items():
+                    if method.lower() not in {"get", "post", "put", "delete"}:
+                        continue
+                    if not isinstance(details, dict):
+                        continue
 
-                # la chiave usata in MongoDB: "GET /bin/{id}", "POST /citizen-report", ecc.
-                key = f"{method.upper()} {path}"
+                    key = f"{method.upper()} {path}"
 
-                resp_schema = self._extract_schema_from_details(details)
-                if resp_schema:
-                    response_schemas[key] = resp_schema
+                    resp_schema = self._extract_schema_from_details(details)
+                    if resp_schema:
+                        response_schemas[key] = resp_schema
 
-                # _extract_request_schema ritorna None per GET e DELETE
-                req_schema = self._extract_request_schema_from_details(details, method)
-                if req_schema:
-                    request_schemas[key] = req_schema
+                    req_schema = self._extract_request_schema_from_details(details, method)
+                    if req_schema:
+                        request_schemas[key] = req_schema
 
-        return {"response_schemas": response_schemas, "request_schemas": request_schemas}
+                    # --- NUOVA CHIAMATA PER I PARAMETRI ---
+                    params_schema = self._extract_parameters_from_details(details)
+                    if params_schema:
+                        parameters[key] = params_schema
 
+            return {
+                "response_schemas": response_schemas, 
+                "request_schemas": request_schemas,
+                "parameters": parameters  # <--- AGGIUNTO AL RETURN
+            }
     # -----------------------------------------------------------------------
     # Metodo principale di enrichment
     # -----------------------------------------------------------------------
@@ -559,7 +570,7 @@ class Service:
 
             # skip idempotente: non rielabora servizi già arricchiti
             # (evita di sovrascrivere schema corretti con una riesecuzione)
-            if "response_schemas" in svc and "request_schemas" in svc:
+            if "response_schemas" in svc and "request_schemas" in svc and "parameters" in svc:
                 print(f"[ENRICH] Skipping {doc_id} (already enriched)")
                 skipped += 1
                 continue
@@ -594,7 +605,8 @@ class Service:
                 patch_resp.raise_for_status()
                 n_resp = len(schemas.get("response_schemas", {}))
                 n_req  = len(schemas.get("request_schemas", {}))
-                print(f"[ENRICH] {doc_id} → {n_resp} response schemas, {n_req} request schemas saved")
+                n_params = len(schemas.get("parameters", {}))
+                print(f"[ENRICH] {doc_id} → {n_resp} response, {n_req} request, {n_params} parameters saved")
                 enriched += 1
             except Exception as e:
                 print(f"[ENRICH] Failed to update {doc_id}: {e}")
@@ -666,6 +678,7 @@ class Service:
         endpoints        = {}
         response_schemas = {}
         request_schemas  = {}
+        parameters       = {} # <--- NUOVO DIZIONARIO
 
         for path, methods in paths.items():
             if not isinstance(methods, dict):
@@ -677,8 +690,6 @@ class Service:
                     continue
 
                 key      = f"{method.upper()} {path}"
-                # la capability è la descrizione testuale: viene indicizzata in Qdrant
-                # per la ricerca semantica ("trova servizi che fanno X")
                 desc     = details.get("description") or details.get("summary") or details.get("operationId") or method
                 full_url = f"{host_url.rstrip('/')}{path}"
 
@@ -693,6 +704,11 @@ class Service:
                 if req_schema:
                     request_schemas[key] = req_schema
 
+                # --- NUOVA CHIAMATA PER I PARAMETRI ---
+                params_schema = self._extract_parameters_from_details(details)
+                if params_schema:
+                    parameters[key] = params_schema
+
         # restituisce il documento completo pronto per MongoDB
         return {
             "id":               service,
@@ -703,6 +719,7 @@ class Service:
             "endpoints":        endpoints,
             "response_schemas": response_schemas,
             "request_schemas":  request_schemas,
+            "parameters":       parameters, # <--- AGGIUNTO AL RETURN
         }
 
     def register_to_redis(self, service_name, service_status):

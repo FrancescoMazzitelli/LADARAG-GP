@@ -7,42 +7,31 @@ APIS_DIR="/apis"
 MOCK_BASE_URL="http://mock-server:8080/rest"
 VERSION="1.0"
 
-capitalize() {
-  word="$1"
-  first_char=$(printf '%s' "$word" | dd bs=1 count=1 2>/dev/null)
-  rest_chars=${word#?}
-  first_upper=$(printf '%s' "$first_char" | awk '{ print toupper($0) }')
-  echo "${first_upper}${rest_chars}"
-}
-
 for api_file in "$APIS_DIR"/*.yaml; do
   echo "Debug: Processing file '$api_file'"
 
-  api_filename=$(basename "$api_file")
-  base_name="${api_filename%.yaml}"
+  # Estraiamo il titolo reale direttamente dal file YAML
+  # Cerca la riga che inizia con "title:", rimuove gli spazi iniziali, la parola "title:" e gli apici.
+  raw_title=$(grep -m 1 "^[[:space:]]*title:" "$api_file" | sed 's/^[[:space:]]*title:[[:space:]]*//' | tr -d "'\"")
+  
+  echo "Debug: Real service_name read from YAML = '$raw_title'"
 
-  IFS='-' read -ra parts <<< "$base_name"
-  capitalized_parts=()
-  for part in "${parts[@]}"; do
-    capitalized_parts+=("$(capitalize "$part")")
-  done
+  # Codifichiamo l'URL in modo sicuro: 
+  # Sostituiamo gli spazi con '+' e il carattere '&' con '%26'
+  service_url_part=$(echo "$raw_title" | sed 's/ /+/g' | sed 's/&/%26/g')
 
-  joined_name=$(IFS='+'; echo "${capitalized_parts[*]}")
-  service_name="${joined_name} API"
-
-  echo "Debug: service_name='$service_name'"
-
-  service_url_part=$(echo "$service_name" | sed 's/ /+/g')
+  # Costruiamo l'URL finale per Microcks
   register_url="${MOCK_BASE_URL}/${service_url_part}/${VERSION}/register"
 
   echo "Debug: register_url='$register_url'"
 
+  # Effettuiamo la chiamata POST
   response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$register_url")
 
-  if [ "$response" -eq 200 ]; then
-    echo "✅ POST /register successful for $service_name"
+  if [ "$response" -eq 200 ] || [ "$response" -eq 201 ]; then
+    echo "✅ POST /register successful for $raw_title"
   else
-    echo "❌ POST /register failed for $service_name — HTTP $response"
+    echo "❌ POST /register failed for $raw_title — HTTP $response"
   fi
 
   echo "-----------------------------------"

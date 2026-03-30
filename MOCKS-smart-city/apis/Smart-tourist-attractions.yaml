@@ -2,7 +2,10 @@ openapi: 3.0.2
 info:
   title: Smart Tourist Attractions API
   version: '1.0'
-  description: "Smart Tourist Attractions API for managing, monitoring, and providing real-time data on city landmarks, museums, and historical sites. \n\nSeamlessly integrated with the City Tourism Board, this service allows client applications (such as digital totems and tourist mobile apps) to track current visitor counts, enforce maximum capacity limits for heritage preservation, and broadcast estimated queue wait times. It ensures an optimized and safe cultural experience for visitors in Benevento."
+  description: >
+    Smart Tourist Attractions API for managing, monitoring, and providing real-time data on city landmarks, museums, and historical sites.
+    Designed for cross-domain orchestration: supports filtering by standardized city zones (zoneId) and allows automated emergency responses, 
+    such as temporarily closing all attractions in a specific zone due to severe weather or traffic gridlock.
   contact:
     name: Smart City Development Team
 servers:
@@ -36,6 +39,9 @@ components:
     NewAttraction:
       type: object
       properties:
+        zoneId:
+          type: string
+          description: Standardized city zone identifier where the attraction is located (e.g., Z-CENTRO, Z-NORD)
         name:
           type: string
           description: Official, globally recognized name of the historical site, museum, or point of interest.
@@ -48,40 +54,41 @@ components:
           description: Precise geographical location or street address within the city.
         openingTime:
           type: string
-          description: Daily opening time in HH:MM format (24h clock) based on the local timezone (CET/CEST).
+          description: Daily opening time in HH:MM format (24h clock) based on the local timezone.
         closingTime:
           type: string
-          description: Daily closing time in HH:MM format (24h clock) based on the local timezone.
+          description: Daily closing time in HH:MM format (24h clock).
         ticketPriceEur:
           type: number
           format: float
           description: Standard adult admission price in EUR. A value of 0.0 indicates free public entry.
         currentVisitors:
           type: integer
-          description: Real-time count of active visitors currently inside the premises, typically updated via IoT turnstiles or ticketing systems.
+          description: Real-time count of active visitors currently inside the premises.
         maxCapacity:
           type: integer
-          description: Maximum allowed simultaneous occupancy dictated by safety regulations and structural preservation constraints.
+          description: Maximum allowed simultaneous occupancy dictated by safety regulations.
         waitingTimeMinutes:
           type: integer
-          description: Dynamically calculated estimated queue wait time in minutes, based on current crowd density and average visit duration.
+          description: Dynamically calculated estimated queue wait time in minutes.
         wheelchairAccessible:
           type: boolean
-          description: Flag indicating if the attraction features ramps, elevators, or paths suitable for visitors with mobility impairments.
+          description: Flag indicating if the attraction is suitable for visitors with mobility impairments.
         availableLanguages:
           type: array
           items:
             type: string
-          description: List of ISO 639-1 language codes indicating available guided tours, informational plaques, or audio guides (e.g., ['it', 'en']).
+          description: List of ISO 639-1 language codes indicating available guided tours (e.g., ['it', 'en']).
         status:
           type: string
           enum: [open, closed, temporarily_closed, special_event]
-          description: Current operational status (e.g., 'temporarily_closed' may trigger when maxCapacity is reached).
+          description: Current operational status (e.g., 'temporarily_closed' due to emergency or max capacity).
         lastUpdated:
           type: string
           format: date-time
           description: ISO-8601 timestamp of the last telemetry and crowd data update.
       required:
+        - zoneId
         - name
         - category
         - address
@@ -112,8 +119,30 @@ paths:
                   value: {}
   /attraction:
     get:
-      description: Retrieves a comprehensive catalog of all tourist attractions in the city, providing an overview of current crowds, wait times, and accessibility data.
-      summary: List all tourist attractions
+      description: Retrieves a catalog of tourist attractions in the city. Use query parameters to filter by city zone, category, or current operational status.
+      summary: Search tourist attractions
+      parameters:
+        - name: zoneId
+          in: query
+          schema:
+            type: string
+          description: Filter attractions by a specific zone ID (e.g., Z-CENTRO)
+          examples:
+            by_zone_centro:
+              value: "Z-CENTRO"
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Filter by attraction category (e.g., archaeological, museum)
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Filter by current status (e.g., open, temporarily_closed)
+          examples:
+            by_status_temporarily_closed:
+              value: "temporarily_closed"
       responses:
         "200":
           description: A JSON array containing the collection of tourist attractions.
@@ -127,6 +156,7 @@ paths:
                 example_list:
                   value:
                     - id: 1
+                      zoneId: Z-CENTRO
                       name: "Arco di Traiano"
                       category: "archaeological"
                       address: "Via Traiano, Benevento"
@@ -141,6 +171,7 @@ paths:
                       status: "open"
                       lastUpdated: "2026-03-09T10:10:00Z"
                     - id: 2
+                      zoneId: Z-NORD
                       name: "Teatro Romano di Benevento"
                       category: "archaeological"
                       address: "Piazza Ponzio Telesino, Benevento"
@@ -154,8 +185,42 @@ paths:
                       availableLanguages: ["it", "en"]
                       status: "open"
                       lastUpdated: "2026-03-09T10:08:00Z"
+                by_zone_centro:
+                  value:
+                    - id: 1
+                      zoneId: Z-CENTRO
+                      name: "Arco di Traiano"
+                      category: "archaeological"
+                      address: "Via Traiano, Benevento"
+                      openingTime: "09:00"
+                      closingTime: "19:00"
+                      ticketPriceEur: 0.0
+                      currentVisitors: 42
+                      maxCapacity: 200
+                      waitingTimeMinutes: 0
+                      wheelchairAccessible: true
+                      availableLanguages: ["it", "en", "fr"]
+                      status: "open"
+                      lastUpdated: "2026-03-09T10:10:00Z"
+                by_status_temporarily_closed:
+                  value:
+                    - id: 4
+                      zoneId: Z-CENTRO
+                      name: "Museo del Sannio"
+                      category: "museum"
+                      address: "Piazza Santa Sofia, Benevento"
+                      openingTime: "09:00"
+                      closingTime: "18:00"
+                      ticketPriceEur: 4.0
+                      currentVisitors: 0
+                      maxCapacity: 100
+                      waitingTimeMinutes: 0
+                      wheelchairAccessible: true
+                      availableLanguages: ["it", "en"]
+                      status: "temporarily_closed"
+                      lastUpdated: "2026-03-09T08:00:00Z"
     post:
-      description: Registers a newly monitored tourist attraction into the city's tourism ecosystem, establishing its baseline configuration and capacity limits.
+      description: Registers a newly monitored tourist attraction into the city's tourism ecosystem.
       summary: Register new tourist attraction
       requestBody:
         required: true
@@ -166,6 +231,7 @@ paths:
             examples:
               new_attraction:
                 value:
+                  zoneId: Z-CENTRO
                   name: "Rocca dei Rettori"
                   category: "palace"
                   address: "Piazza Castello, Benevento"
@@ -190,6 +256,7 @@ paths:
                 created:
                   value:
                     id: 3
+                    zoneId: Z-CENTRO
                     name: "Rocca dei Rettori"
                     category: "palace"
                     address: "Piazza Castello, Benevento"
@@ -205,7 +272,7 @@ paths:
                     lastUpdated: "2026-03-09T10:00:00Z"
   /attraction/{id}:
     get:
-      description: Fetches the real-time details and telemetry (such as queue duration and crowd density) of a specific tourist attraction using its unique ID.
+      description: Fetches the real-time details and telemetry of a specific tourist attraction using its unique ID.
       summary: Get tourist attraction details by ID
       parameters:
         - name: id
@@ -228,6 +295,7 @@ paths:
                 attraction_1:
                   value:
                     id: 1
+                    zoneId: Z-CENTRO
                     name: "Arco di Traiano"
                     category: "archaeological"
                     address: "Via Traiano, Benevento"
@@ -244,7 +312,7 @@ paths:
         "404":
           description: The specified attraction ID does not exist in the database.
     put:
-      description: Updates the real-time data of an attraction. Designed to be called frequently by IoT turnstiles or manual staff inputs to refresh visitor counts and wait times.
+      description: Updates the real-time data of an attraction (e.g., visitor counts, wait times, or status).
       summary: Update tourist attraction by ID
       parameters:
         - name: id
@@ -264,6 +332,7 @@ paths:
             examples:
               update:
                 value:
+                  zoneId: Z-CENTRO
                   name: "Arco di Traiano"
                   category: "archaeological"
                   address: "Via Traiano, Benevento"
@@ -288,6 +357,7 @@ paths:
                 updated:
                   value:
                     id: 1
+                    zoneId: Z-CENTRO
                     name: "Arco di Traiano"
                     category: "archaeological"
                     address: "Via Traiano, Benevento"
@@ -325,9 +395,49 @@ paths:
                   value: "Tourist attraction deleted"
         "404":
           description: The specified attraction ID was not found.
+  /attraction/zone/{zoneId}/status:
+    put:
+      description: Dynamically update the operational status of all tourist attractions in a specific zone. Extremely useful for emergency evacuations, severe weather closures, or city-wide special events.
+      summary: Set status for all attractions in a zone
+      parameters:
+        - name: zoneId
+          in: path
+          required: true
+          schema:
+            type: string
+          examples:
+            zone_centro:
+              value: Z-CENTRO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newStatus:
+                  type: string
+                  enum: [open, closed, temporarily_closed, special_event]
+                  description: The new operational status to apply to all attractions in the zone
+                reason:
+                  type: string
+                  description: Reason for the mass status update (e.g., SEVERE_WEATHER, SECURITY_THREAT)
+            examples:
+              emergency_closure:
+                value:
+                  newStatus: temporarily_closed
+                  reason: SEVERE_WEATHER_WARNING
+      responses:
+        "200":
+          description: Zone attraction status successfully updated.
+          content:
+            text/plain:
+              examples:
+                success:
+                  value: Zone attractions status updated
   /register:
     post:
-      description: Registers this microservice with the central discovery registry (e.g., Consul) to enable seamless routing and integration with other Smart City modules.
+      description: Registers this microservice with the central discovery registry (e.g., Consul).
       summary: Register service with discovery system
       responses:
         "200":

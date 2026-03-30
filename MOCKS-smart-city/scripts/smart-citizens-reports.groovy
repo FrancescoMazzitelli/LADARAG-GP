@@ -12,8 +12,9 @@ def CONSUL_INTERNAL_PORT   = 8500
 def CONSUL_HOST    = "registry"
 def GATEWAY_HOST   = "catalog-gateway"
 def GATEWAY_PORT   = 5000
-def API            = "Smart+Citizens+Reports+API"
-def OPENAPI_FILE   = "Smart%20Citizens%20Reports%20API-1.0.yaml"
+// AGGIORNATO: Titolo e file allineati con il nuovo YAML
+def API            = "Smart+Citizens+Reports+and+Ticketing+API"
+def OPENAPI_FILE   = "Smart%20Citizens%20Reports%20and%20Ticketing%20API-1.0.yaml"
 def API_VERSION    = "1.0"
 
 // ── Retry helper ──────────────────────────────────────────────────────────

@@ -12,8 +12,9 @@ def CONSUL_INTERNAL_PORT   = 8500
 def CONSUL_HOST    = "registry"
 def GATEWAY_HOST   = "catalog-gateway"
 def GATEWAY_PORT   = 5000
-def API            = "Smart+Lighting+API"
-def OPENAPI_FILE   = "Smart%20Lighting%20API-1.0.yaml"
+
+def API            = "Smart+Lighting+and+Energy+API"
+def OPENAPI_FILE   = "Smart%20Lighting%20and%20Energy%20API-1.0.yaml"
 def API_VERSION    = "1.0"
 
 // ── Retry helper ──────────────────────────────────────────────────────────

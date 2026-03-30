@@ -27,8 +27,9 @@ for api_file in "$APIS_DIR"/*.yaml; do
   base_name=${api_filename%.yaml}
   echo "Debug: base_name='$base_name'"
 
-  service_name=$(echo "$base_name" | tr '-' ' ' | awk '{ for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print }')
-  service_name="${service_name} API"
+  # --- MODIFICA CRITICA 1: Estrazione titolo reale ---
+  raw_title=$(grep -m 1 "^[[:space:]]*title:" "$api_file" | sed 's/^[[:space:]]*title:[[:space:]]*//' | tr -d "'\"")
+  service_name="$raw_title"
   echo "Debug: service_name='$service_name'"
 
   groovy_script="${SCRIPTS_DIR}/${base_name}.groovy"
@@ -49,8 +50,8 @@ for api_file in "$APIS_DIR"/*.yaml; do
     operation_id=""
     service_id=""
 
-    # Normalizziamo il base_name togliendo i trattini per la ricerca fuzzy case-insensitive
-    SEARCH_TERM=$(echo "$base_name" | tr '-' ' ')
+    # --- MODIFICA CRITICA 2: Usiamo il titolo reale per il match su Microcks ---
+    SEARCH_TERM="$service_name"
 
     # Cicla finché non esaurisce i tentativi
     while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do

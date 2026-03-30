@@ -4,16 +4,16 @@ import java.net.URL
 import java.net.HttpURLConnection
 
 // ── Service constants ──────────────────────────────────────────────────────
-def SERVICE_NAME   = "smart-sensors-api-mock"
-def SERVICE_ID     = "smart-sensors-mock"
+def SERVICE_NAME   = "smart-environment-and-temperature-sensors-api-mock"
+def SERVICE_ID     = "smart-environment-and-temperature-sensors-mock"
 def MICROCKS_INTERNAL_PORT = 8080
 def MICROCKS_HOST  = "mock-server"
 def CONSUL_INTERNAL_PORT   = 8500
 def CONSUL_HOST    = "registry"
 def GATEWAY_HOST   = "catalog-gateway"
 def GATEWAY_PORT   = 5000
-def API            = "Smart+Sensors+API"
-def OPENAPI_FILE   = "Smart%20Sensors%20API-1.0.yaml"
+def API            = "Smart+Environment+and+Temperature+Sensors+API"
+def OPENAPI_FILE   = "Smart%20Environment%20and%20Temperature%20Sensors%20API-1.0.yaml"
 def API_VERSION    = "1.0"
 
 // ── Retry helper ──────────────────────────────────────────────────────────
