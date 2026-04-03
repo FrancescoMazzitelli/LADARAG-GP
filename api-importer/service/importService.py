@@ -489,7 +489,11 @@ class Service:
 
     def _extract_schemas_from_yaml(self, swagger_url):
             try:
-                parser  = prance.ResolvingParser(swagger_url, lazy=False, strict=False)
+                # --- FIX UTF-8 ---
+                resp = requests.get(swagger_url)
+                resp.encoding = 'utf-8'  # Forza la decodifica dei caratteri speciali (come "—")
+                parser = prance.ResolvingParser(spec_string=resp.text, lazy=False, strict=False)
+                # -----------------
                 swagger = parser.specification
             except Exception as e:
                 print(f"Failed to load/resolve YAML from {swagger_url}: {e}")
@@ -633,11 +637,15 @@ class Service:
           - swagger_url: URL dello YAML (per futuri re-enrichment)
         """
         try:
+            # --- FIX UTF-8 ---
+            resp = requests.get(swagger_url)
+            resp.encoding = 'utf-8'
             parser  = prance.ResolvingParser(
-                swagger_url,
+                spec_string=resp.text,
                 lazy=False,
                 strict=False,
             )
+            # -----------------
             swagger = parser.specification
         except Exception as e:
             print(f"Failed to load/resolve YAML from {swagger_url}: {e}")

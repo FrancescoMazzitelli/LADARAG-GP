@@ -95,7 +95,7 @@ def count_tokens(text):
     return len(tokens)
 
 
-# ------------------------------------------------------------------------------| parallel
+# ─────────────────────────────────────────────────────────────────── parallel
 def init_model():
     global model
     model = SentenceTransformer('Qwen/Qwen3-Embedding-0.6B', device='cpu')
@@ -110,7 +110,7 @@ def embed_item(args):
         vector=vector.tolist(),
         payload={"mongo_id": doc_id, "http_operation": key}
     )
-# ------------------------------------------------------------------------------| parallel
+# ─────────────────────────────────────────────────────────────────── parallel
 
 
 def create_vector_collection():
@@ -147,7 +147,7 @@ def vector_search():
     results = qdrant_client.search(
         collection_name=QDRANT_COLLECTION,
         query_vector=query_embedding,
-        limit=20
+        limit=30
     )
 
     services     = []
@@ -170,11 +170,9 @@ def vector_search():
             response_schemas = retrieved.get("response_schemas", {})
             resp_schema      = response_schemas.get(http_operation)
 
-            # Request schema per questo endpoint
             request_schemas = retrieved.get("request_schemas", {})
             req_schema      = request_schemas.get(http_operation)
 
-            # --- NUOVO: Estrazione dei parametri per questo endpoint ---
             all_parameters  = retrieved.get("parameters", {})
             endpoint_params = all_parameters.get(http_operation)
 
@@ -194,8 +192,8 @@ def vector_search():
                 "request_schemas": {
                     http_operation: req_schema
                 },
-                "parameters": {                      # <--- NUOVO
-                    http_operation: endpoint_params  # <--- NUOVO
+                "parameters": {
+                    http_operation: endpoint_params
                 },
             }
 
@@ -205,11 +203,41 @@ def vector_search():
         except Exception as e:
             logger.error(f"Error processing doc_id: {doc_id}, operation: {http_operation} - {str(e)}")
 
-    rerank_inputs    = [(query_text, cap_text) for cap_text in rerank_texts]
-    scores           = reranker_model.predict(rerank_inputs)
-    reranked         = sorted(zip(services, scores), key=lambda x: x[1], reverse=True)
-    ordered_services = [doc for doc, _ in reranked]
+    rerank_inputs = [(query_text, cap_text) for cap_text in rerank_texts]
+    scores        = reranker_model.predict(rerank_inputs)
+    reranked      = sorted(zip(services, scores), key=lambda x: x[1], reverse=True)
 
+    # ── Merge: un oggetto per servizio, preservando l'ordine del best score ──
+    # Qdrant restituisce 1 vettore per endpoint: lo stesso servizio può comparire
+    # N volte, ciascuna con 1 capability diversa. Il merge li riunisce in un
+    # unico documento con tutti gli endpoint rilevanti, ordinati per rilevanza.
+    merged: dict = {}
+    for service, score in reranked:
+        sid = service["_id"]
+        if sid not in merged:
+            merged[sid] = {
+                "_id":              sid,
+                "name":             service["name"],
+                "description":      service["description"],
+                "capabilities":     {},
+                "endpoints":        {},
+                "response_schemas": {},
+                "request_schemas":  {},
+                "parameters":       {},
+                "_best_score":      score,   # score del primo match = il più rilevante
+            }
+        merged[sid]["capabilities"].update(service.get("capabilities", {}))
+        merged[sid]["endpoints"].update(service.get("endpoints", {}))
+        merged[sid]["response_schemas"].update(service.get("response_schemas", {}))
+        merged[sid]["request_schemas"].update(service.get("request_schemas", {}))
+        merged[sid]["parameters"].update(service.get("parameters", {}))
+
+    # Ordina i servizi per best score e rimuove il campo interno
+    ordered_services = sorted(merged.values(), key=lambda x: x["_best_score"], reverse=True)
+    for s in ordered_services:
+        s.pop("_best_score", None)
+
+    # ── Token budget: include i servizi completi finché non si supera il limite ──
     max_tokens     = 7600
     current_tokens = 0
     top_results    = []
@@ -223,6 +251,7 @@ def vector_search():
         else:
             break
 
+    logger.info(f"[SEARCH] {len(results)} vettori → {len(merged)} servizi unici → {len(top_results)} nel budget token")
     return jsonify({"results": top_results}), 200
 
 
@@ -256,7 +285,7 @@ def create_or_update_service_old():
     return jsonify({"status": "ok", "id": doc_id}), 200
 
 
-# ------------------------------------------------------------------------------| parallel
+# ─────────────────────────────────────────────────────────────────── parallel
 @app.route("/service/old", methods=["POST"])
 def create_or_update_service():
     data = request.get_json()
@@ -280,7 +309,7 @@ def create_or_update_service():
     qdrant_client.upsert(collection_name=QDRANT_COLLECTION, points=points)
     collection.replace_one({"_id": doc_id}, data, upsert=True)
     return jsonify({"status": "ok", "id": doc_id}), 200
-# ------------------------------------------------------------------------------| parallel
+# ─────────────────────────────────────────────────────────────────── parallel
 
 
 @app.route("/services", methods=["GET"])
@@ -308,16 +337,8 @@ def delete_service(service_id):
 @app.route("/services/<string:service_id>/schemas", methods=["PATCH"])
 def update_service_schemas(service_id):
     """
-    Aggiorna response_schemas e/o request_schemas di un servizio.
+    Aggiorna response_schemas, request_schemas e/o parameters di un servizio.
     Chiamato dall'api-importer dopo aver estratto gli schema con prance.
-
-    Entrambi i campi sono opzionali, ma almeno uno deve essere presente.
-
-    Body:
-      {
-        "response_schemas": { "GET /path": "{id:int, ...}", ... },
-        "request_schemas":  { "POST /path": "{field:type*, ...}", ... }
-      }
     """
     data = request.get_json()
     update_fields = {}
@@ -325,11 +346,11 @@ def update_service_schemas(service_id):
         update_fields["response_schemas"] = data["response_schemas"]
     if "request_schemas" in data:
         update_fields["request_schemas"] = data["request_schemas"]
-    if "parameters" in data:                            # <--- NUOVO
-        update_fields["parameters"] = data["parameters"] # <--- NUOVO
+    if "parameters" in data:
+        update_fields["parameters"] = data["parameters"]
 
     if not update_fields:
-        return jsonify({"error": "No valid schema fields provided (expected 'response_schemas' and/or 'request_schemas')"}), 400
+        return jsonify({"error": "No valid schema fields provided"}), 400
 
     result = collection.update_one(
         {"_id": service_id},
