@@ -61,13 +61,23 @@ class PlanValidator:
             if op and op not in PlanValidator.VALID_OPERATIONS:
                 errors.append(f"{prefix}: invalid operation '{op}'")
 
+            # GET non deve avere params nel body input — vengono ignorati silenziosamente
+            if op == "GET" and isinstance(task.get("input"), dict) and task.get("input"):
+                errors.append(
+                    f"{prefix}: GET request has non-empty 'input' dict — "
+                    f"query params must be in the url, not in input field"
+                )
+
             # Chaining: i placeholder devono referenziare task già definiti
-            task_str = json.dumps(task)
+            task_str     = json.dumps(task)
+            current_name = task.get("task_name", "")
             for ref in re.findall(r'\{\{\s*([a-zA-Z0-9_]+)', task_str):
-                if ref not in defined_task_names:
+                if ref == current_name:
+                    errors.append(f"{prefix}: self-reference — task cannot reference itself in chaining")
+                elif ref not in defined_task_names:
                     errors.append(f"{prefix}: references undefined task '{ref}'")
 
-            defined_task_names.add(task.get("task_name", ""))
+            defined_task_names.add(current_name)
 
         return len(errors) == 0, errors
 
@@ -177,97 +187,138 @@ class Controller:
 
     def _build_system_prompt(self) -> str:
 
+        # ── EXAMPLE 1: Simple GET with enum filter ────────────────────────────
+        # Domain: smart library (not used in test queries)
+        # Pattern: single GET with a query param that has an enum value
         ex_get = {
-            "reasoning": "The user wants to see all currently open tourist attractions. I will query the smart-tourist-attractions service with a filter on status=open.",
+            "reasoning": "The user wants all library books currently available for loan. I query the smart-library service filtering by status=available.",
             "tasks": [{
-                "task_name":  "get_open_attractions",
-                "service_id": "smart-tourist-attractions-mock",
-                "url":        "http://mock-server:8080/rest/Smart+Tourist+Attractions+API/1.0/attraction?status=open",
+                "task_name":  "get_available_books",
+                "service_id": "smart-library-mock",
+                "url":        "http://mock-server:8080/rest/Smart+Library+Management+API/1.0/book?status=available",
                 "operation":  "GET",
                 "input":      ""
             }]
         }
 
+        # ── EXAMPLE 2: POST with full required body ───────────────────────────
+        # Domain: smart sports facility (not used in test queries)
+        # Pattern: POST with a complete JSON body including all required fields
         ex_post = {
-            "reasoning": "The user wants to create a new citizen report. I will call the smart-citizens-reports service with the provided details.",
+            "reasoning": "The user wants to reserve a sports court. I call the smart-sports-facility service with the reservation details as a POST body.",
             "tasks": [{
-                "task_name":  "create_report",
-                "service_id": "smart-citizens-reports-mock",
-                "url":        "http://mock-server:8080/rest/Smart+Citizens+Reports+and+Ticketing+API/1.0/citizen-report",
+                "task_name":  "create_reservation",
+                "service_id": "smart-sports-facility-mock",
+                "url":        "http://mock-server:8080/rest/Smart+Sports+Facility+API/1.0/reservation",
                 "operation":  "POST",
                 "input": {
-                    "zoneId":       "Z-CENTRO",
-                    "reporterName": "Mario Rossi",
-                    "location":     "Piazza Castello",
-                    "category":     "sanitation",
-                    "description":  "Cestino pieno",
-                    "status":       "open",
-                    "submittedAt":  "2025-09-25T10:00:00Z"
+                    "zoneId":      "Z-NORD",
+                    "facilityId":  3,
+                    "sport":       "tennis",
+                    "courtNumber": 2,
+                    "userName":    "Marco Verdi",
+                    "date":        "2025-09-26",
+                    "startTime":   "10:00",
+                    "endTime":     "11:00",
+                    "status":      "confirmed"
                 }
             }]
         }
 
+        # ── EXAMPLE 3: JMESPath filter + path param injection ─────────────────
+        # Domain: smart hospital (not used in test queries)
+        # Pattern: GET list → filter by field → inject id into PUT url
         ex_chain_single = {
-            "reasoning": "The user wants to turn off a specific light. I will GET all lights, filter by location with JMESPath, and inject the id directly into the PUT url.",
+            "reasoning": "The user wants to discharge a specific patient named Rossi. I GET all patients, filter by surname using JMESPath, and inject the patient id directly into the PUT url to update their status.",
             "tasks": [
                 {
-                    "task_name":  "get_all_lights",
-                    "service_id": "smart-lighting-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Lighting+and+Energy+API/1.0/light",
+                    "task_name":  "get_all_patients",
+                    "service_id": "smart-hospital-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Hospital+Management+API/1.0/patient",
                     "operation":  "GET",
                     "input":      ""
                 },
                 {
-                    "task_name":  "turn_off_light",
-                    "service_id": "smart-lighting-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Lighting+and+Energy+API/1.0/light/{{get_all_lights[?location=='Corso Garibaldi - Palo 12, Benevento'] | [0].id}}",
+                    "task_name":  "discharge_patient",
+                    "service_id": "smart-hospital-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Hospital+Management+API/1.0/patient/{{get_all_patients[?surname=='Rossi'] | [0].id}}",
                     "operation":  "PUT",
                     "input": {
-                        "zoneId":           "Z-CENTRO",
-                        "location":         "Corso Garibaldi - Palo 12, Benevento",
-                        "status":           "off",
-                        "brightness":       0,
-                        "energyConsumption": 0.0,
-                        "smartEnabled":     True
+                        "zoneId":    "Z-SUD",
+                        "surname":   "Rossi",
+                        "status":    "discharged",
+                        "wardId":    12,
+                        "updatedAt": "2025-09-25T14:00:00Z"
                     }
                 }
             ]
         }
 
+        # ── EXAMPLE 4: Multi-zone JOIN ────────────────────────────────────────
+        # Domain: smart university campus (not used in test queries)
+        # Pattern: GET list → extract ALL zoneIds → pass as zoneIds to second service
         ex_chain_multivalore = {
-            "reasoning": "The user wants parking near tourist attractions. I get all open attractions, collect ALL their zoneIds with JMESPath join, and pass them as a comma-separated zoneIds param to the parking service.",
+            "reasoning": "The user wants food services near occupied lecture halls. I get all lecture halls with status=occupied, collect ALL their zoneIds, and pass them to the canteen service to find nearby options.",
             "tasks": [
                 {
-                    "task_name":  "get_open_attractions",
-                    "service_id": "smart-tourist-attractions-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Tourist+Attractions+API/1.0/attraction?status=open",
+                    "task_name":  "get_occupied_halls",
+                    "service_id": "smart-campus-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+University+Campus+API/1.0/lecture-hall?status=occupied",
                     "operation":  "GET",
                     "input":      ""
                 },
                 {
-                    "task_name":  "get_parking_near_attractions",
-                    "service_id": "smart-parking-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Parking+and+Mobility+API/1.0/parking-spot?zoneIds={{get_open_attractions[*].zoneId | join(',', @)}}&available=true",
+                    "task_name":  "get_canteens_near_halls",
+                    "service_id": "smart-campus-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+University+Campus+API/1.0/canteen?zoneIds={{get_occupied_halls[*].zoneId | join(',', @)}}&open=true",
                     "operation":  "GET",
                     "input":      ""
                 }
             ]
         }
 
+        # ── EXAMPLE 5: Boolean filter + JOIN ──────────────────────────────────
+        # Domain: smart agriculture (not used in test queries)
+        # Pattern: GET with boolean filter → extract zoneIds → second service
         ex_chain_alert = {
-            "reasoning": "The user wants to find attractions in zones with active environmental alerts. I get all sensors with alertActive=true, collect their zoneIds, and query attractions in those zones.",
+            "reasoning": "The user wants irrigation controllers in zones where soil moisture alerts are active. I get all soil sensors with alertActive=true, collect their zoneIds, and query irrigation controllers in those zones.",
             "tasks": [
                 {
-                    "task_name":  "get_alert_sensors",
-                    "service_id": "smart-environment-sensors-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Environment+and+Temperature+Sensors+API/1.0/sensor?alertActive=true",
+                    "task_name":  "get_dry_soil_zones",
+                    "service_id": "smart-agriculture-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Agriculture+Monitoring+API/1.0/soil-sensor?alertActive=true",
                     "operation":  "GET",
                     "input":      ""
                 },
                 {
-                    "task_name":  "get_attractions_in_alert_zones",
-                    "service_id": "smart-tourist-attractions-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Tourist+Attractions+API/1.0/attraction?zoneIds={{get_alert_sensors[*].zoneId | join(',', @)}}",
+                    "task_name":  "get_irrigation_in_dry_zones",
+                    "service_id": "smart-agriculture-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Agriculture+Monitoring+API/1.0/irrigation-controller?zoneIds={{get_dry_soil_zones[*].zoneId | join(',', @)}}",
+                    "operation":  "GET",
+                    "input":      ""
+                }
+            ]
+        }
+
+        # ── EXAMPLE 6: OR filter on same field + JOIN ─────────────────────────
+        # Domain: smart logistics (not used in test queries)
+        # Pattern: GET all (no filter) → OR filter in JMESPath → join zoneIds
+        # KEY: when filtering on multiple values of the same field,
+        # use ONE GET + JMESPath OR instead of two separate GETs
+        ex_or_filter = {
+            "reasoning": "The user wants trucks in zones with critically loaded waste bins (full or overflowing). Instead of two separate GETs, I query all bins in one call and apply a JMESPath OR filter to collect zoneIds, then find available trucks in those zones.",
+            "tasks": [
+                {
+                    "task_name":  "get_urgent_bins",
+                    "service_id": "smart-logistics-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Logistics+and+Fleet+API/1.0/waste-bin",
+                    "operation":  "GET",
+                    "input":      ""
+                },
+                {
+                    "task_name":  "get_trucks_for_urgent_zones",
+                    "service_id": "smart-logistics-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Logistics+and+Fleet+API/1.0/collection-truck?zoneIds={{get_urgent_bins[?status=='full' || status=='overflowing'][*].zoneId | join(',', @)}}&available=true",
                     "operation":  "GET",
                     "input":      ""
                 }
@@ -275,11 +326,12 @@ class Controller:
         }
 
         examples_str = (
-            f"EXAMPLE 1 — Simple GET with filter:\n{json.dumps(ex_get, indent=2)}\n\n"
+            f"EXAMPLE 1 — Simple GET with enum filter:\n{json.dumps(ex_get, indent=2)}\n\n"
             f"EXAMPLE 2 — POST with full body:\n{json.dumps(ex_post, indent=2)}\n\n"
             f"EXAMPLE 3 — JMESPath filter + path param injection:\n{json.dumps(ex_chain_single, indent=2)}\n\n"
             f"EXAMPLE 4 — Multi-zone JOIN (collect ALL zones, pass as comma-separated):\n{json.dumps(ex_chain_multivalore, indent=2)}\n\n"
-            f"EXAMPLE 5 — Boolean filter + JOIN:\n{json.dumps(ex_chain_alert, indent=2)}"
+            f"EXAMPLE 5 — Boolean filter + JOIN:\n{json.dumps(ex_chain_alert, indent=2)}\n\n"
+            f"EXAMPLE 6 — OR filter on same field (ONE GET + JMESPath, not two GETs):\n{json.dumps(ex_or_filter, indent=2)}"
         )
 
         return f"""You are an API orchestrator for a distributed Smart City system.
@@ -305,6 +357,28 @@ CHEAT SHEET:
   Sort descending (max):   {{{{task | sort_by(@, &fillLevel)[-1].id}}}}
   Count matches:           {{{{task[?alertActive==`true`] | length(@)}}}}
   OR filter + join:        {{{{task[?field=='a' || field=='b'][*].zoneId | join(',', @)}}}}
+  Sort ascending (min):    {{{{task | sort_by(@, &lastReading)[0].zoneId}}}}
+  Sort descending (max):   {{{{task | sort_by(@, &fillLevel)[-1].id}}}}
+  First match:             {{{{task[?available==`true`] | [0].id}}}}
+  Count matches:           {{{{task[?alertActive==`true`] | length(@)}}}}
+  Single field list:       {{{{task[*].zoneId}}}}
+
+POST-PROCESSING — inline JMESPath vs Smart Data Processor:
+  Use JMESPath inline when: sorting, filtering, counting, selecting first/last.
+  Use smart-data-processor-mock when: joining two datasets, computing avg/sum/stddev,
+  set operations (intersect/diff), multi-criteria ranking, grouping by field.
+
+  DATA PROCESSOR endpoints (service_id: smart-data-processor-mock):
+    POST http://api-importer:7500/processor/join       — inner/left/right join on a shared field
+    POST http://api-importer:7500/processor/aggregate  — avg, sum, min, max, count, stddev, median
+    POST http://api-importer:7500/processor/intersect  — items in left whose key appears in right
+    POST http://api-importer:7500/processor/diff       — items in left whose key is NOT in right
+    POST http://api-importer:7500/processor/group      — group list by field
+    POST http://api-importer:7500/processor/rank       — multi-criteria weighted ranking
+    POST http://api-importer:7500/processor/sort       — sort + optional top-N
+    POST http://api-importer:7500/processor/filter     — filter with AND/OR conditions
+
+  NEVER add a duplicate GET task just to sort or filter already-fetched data.
 
 SYNTAX RULES:
   - String values  → single quotes:  [?status=='open']
@@ -345,6 +419,12 @@ RULES (in order of priority):
 12. NEVER create an intermediate GET-by-ID if the ID is already available.
 13. PARAMETERS marked * are REQUIRED and must appear in the url.
 14. NEVER return a url with unresolved placeholders like {{id}} or {{zoneId}}.
+16. NEVER add a duplicate task that calls the same url+service as a previous task.
+    Use JMESPath chaining on the existing result or add a data-processor task instead.
+17. For operations JMESPath cannot do (join, avg, group, rank, intersect, diff),
+    add a final task with service_id=smart-data-processor-mock pointing to the
+    appropriate endpoint. Pass previous task results via JMESPath in the input field:
+    input: {{"left": "{{{{task_a}}}}", "right": "{{{{task_b}}}}", "on": "zoneId"}}
 15. NEVER concatenate two {{{{}}}} placeholders in the same URL param value:
     WRONG: ?zoneIds={{{{task1[*].zoneId | join(',', @)}}}},{{{{task2[*].zoneId | join(',', @)}}}}
     RIGHT: query all data in ONE prior task, then filter with JMESPath OR:
@@ -358,7 +438,7 @@ RULES (in order of priority):
                            discovered_endpoints, discovered_schemas,
                            discovered_request_schemas, discovered_parameters,
                            query, input_files=None) -> str:
-        lines = ["/no_think", "SERVICES AND ENDPOINTS:"]   # ← aggiunta /no_think
+        lines = ["SERVICES AND ENDPOINTS:"]
         for i, service in enumerate(discovered_services):
             lines.append(f"\nSERVICE_ID: {service.get('_id')}")
             lines.append(f"NAME: {service.get('name')}")
@@ -494,6 +574,11 @@ QUERY:
             result = jmespath.search(jmespath_expr, val)
             if result is None:
                 print(f"[JMESPATH] Nessun match per '{jmespath_expr}' su '{task_name}'")
+                return ""
+            # Lista vuota dopo filtro → il param risultante sarà vuoto
+            # (es: zoneIds= ) che causa 400 su Microcks — logga warning esplicito
+            if isinstance(result, list) and len(result) == 0:
+                print(f"[JMESPATH WARN] Empty list for '{jmespath_expr}' on '{task_name}' — resulting URL param will be empty")
                 return ""
             # Deduplicazione: liste di stringhe (es. zoneIds per join)
             if isinstance(result, list) and all(isinstance(x, str) for x in result):
@@ -653,7 +738,15 @@ QUERY:
                 results.append(result)
                 name = task.get("task_name") or "unnamed_task"
                 if result.get("status") == "SUCCESS":
-                    context[name] = result.get("result", {})
+                    raw = result.get("result", {})
+                    # Salva nel context solo strutture JSON (dict/list)
+                    # DELETE/PUT spesso restituiscono testo ("Bin deleted") —
+                    # passarlo a JMESPath causerebbe un crash silenzioso
+                    if isinstance(raw, (dict, list)):
+                        context[name] = raw
+                    else:
+                        print(f"[CONTEXT] '{name}' returned non-JSON ({type(raw).__name__}) — not stored in chain context")
+                        context[name] = {}
                 else:
                     print(f"[CHAIN BROKEN] '{name}' fallito. Interruzione pipeline.")
                     break
@@ -690,6 +783,12 @@ QUERY:
                 task["service_id"] = corrected
 
             url = str(task.get("url", ""))
+            # Sostituisce localhost con l'indirizzo del mock server (URL dal YAML)
+            if url and re.search(r'http://localhost:\d+', url):
+                fixed = re.sub(r'http://localhost:\d+', mock_url, url)
+                print(f"[AUTO-FIX] localhost → mock-server: {fixed}")
+                task["url"] = fixed
+                url = fixed
             if url and not url.startswith("http") and not url.startswith("{{"):
                 task["url"] = (mock_url if url.startswith("/") else mock_url + "/") + url.lstrip("/")
                 print(f"[AUTO-FIX] URL: {task['url']}")

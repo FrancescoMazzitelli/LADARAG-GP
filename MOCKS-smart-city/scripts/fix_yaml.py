@@ -2,6 +2,14 @@ import yaml
 import glob
 import os
 
+'''
+Script per risolvere il problema degli alias/ancore YAML nei file delle API.
+Il problema è che alcuni file YAML usano alias (&) e ancore (*) per evitare la
+ripetizione di blocchi di dati, ma questo può causare problemi di compatibilità con alcuni parser YAML.
+Questo script legge ogni file YAML, risolve gli alias in memoria e poi riscrive il file senza usare alias,
+garantendo che ogni blocco di dati sia scritto per esteso.
+'''
+
 # Creiamo un Dumper personalizzato che impedisce la scrittura di alias/ancore
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):

@@ -442,10 +442,20 @@ class Service:
                 schema = p.get("schema", {})
                 
                 # Usa lo stesso _map_type che usi per il resto
-                param_type = self._map_type(schema)
-                marker = "*" if is_required or p.get("in") == "path" else ""
-                
-                extracted[name] = f"{param_type}{marker}"
+                param_type  = self._map_type(schema)
+                marker      = "*" if is_required or p.get("in") == "path" else ""
+
+                # Include i valori enum in formato compatto: enum(v1,v2,v3)
+                # Risparmia token rispetto a descrivere i valori in prosa,
+                # ed evita che l'LLM inventi varianti (es: airQuality vs air_quality)
+                # Cap a 8 valori per non gonfiare il prompt su enum molto grandi
+                enum_values = schema.get("enum")
+                if enum_values and isinstance(enum_values, list) and len(enum_values) <= 8:
+                    type_label = "enum(" + ",".join(str(v) for v in enum_values) + ")"
+                else:
+                    type_label = param_type
+
+                extracted[name] = f"{type_label}{marker}"
 
         if not extracted:
             return None
