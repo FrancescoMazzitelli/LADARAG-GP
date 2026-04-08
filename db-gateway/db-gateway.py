@@ -158,11 +158,11 @@ def vector_search():
       (es: "parking near tourist attractions, low traffic zones...")
       → alta recall: trova i servizi giusti anche per query composte
 
-    Stage 2 — Cross-encoder su capabilities (reranker ms-marco):
-      Per ogni servizio recuperato nel Stage 1, carica TUTTI i suoi endpoint
-      da MongoDB e li rerankerizza con il CrossEncoder.
-      Mantiene solo gli endpoint con score > ENDPOINT_THRESHOLD.
-      → alta precision: espone all'LLM solo gli endpoint effettivamente rilevanti
+        Stage 2 — Cross-encoder su capabilities (reranker ms-marco):
+            Per ogni servizio recuperato nel Stage 1, carica TUTTI i suoi endpoint
+            da MongoDB e li rerankerizza con il CrossEncoder.
+            Mantiene sempre i top-N endpoint per score (senza soglia minima).
+            → bilanciamento recall/precision costante per ogni servizio selezionato
     """
     data = request.get_json()
     if not data or "query" not in data:
@@ -172,11 +172,8 @@ def vector_search():
     query_embedding = embed(query_text)
 
     # ── Parametri two-stage ───────────────────────────────────────────────────
-    STAGE1_K             = 8     # quanti servizi recuperare nel primo stage
-    ENDPOINT_THRESHOLD   = -3.0  # score minimo CrossEncoder per includere un endpoint
-                                 # ms-marco produce score in range ~[-10, +10]
-                                 # -3.0 esclude endpoint chiaramente irrilevanti
-                                 # mantenendo quelli mediamente pertinenti
+    STAGE1_K             = 5     # quanti servizi recuperare nel primo stage
+    TOP_ENDPOINTS_PER_SERVICE = 4  # restituisce sempre i top-4 endpoint per servizio
     INTELLIGENCE_ID        = "smart-city-intelligence-mock"
     MIN_SCORE_INTELLIGENCE = 0.60  # soglia speciale per Intelligence API
 
@@ -243,15 +240,8 @@ def vector_search():
             reverse=True
         )
 
-        relevant_ops = [
-            (op, score) for op, score in scored_ops
-            if score >= ENDPOINT_THRESHOLD
-        ]
-
-        # Se nessun endpoint supera la soglia, prendi almeno il migliore
-        # (il servizio è stato recuperato nel Stage 1, quindi è comunque rilevante)
-        if not relevant_ops:
-            relevant_ops = [scored_ops[0]]
+        # Per ogni servizio selezionato, tieni sempre i top-N endpoint per score.
+        relevant_ops = scored_ops[:TOP_ENDPOINTS_PER_SERVICE]
 
         best_endpoint_score = relevant_ops[0][1]
 

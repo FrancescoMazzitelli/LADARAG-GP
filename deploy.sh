@@ -28,7 +28,7 @@ for api_file in "$APIS_DIR"/*.yaml; do
   echo "Debug: base_name='$base_name'"
 
   # --- MODIFICA CRITICA 1: Estrazione titolo reale ---
-  raw_title=$(grep -m 1 "^[[:space:]]*title:" "$api_file" | sed 's/^[[:space:]]*title:[[:space:]]*//' | tr -d "'\"")
+  raw_title=$(grep -m 1 "^[[:space:]]*title:" "$api_file" | sed 's/^[[:space:]]*title:[[:space:]]*//' | tr -d "'\"" | tr -d '\r')
   service_name="$raw_title"
   echo "Debug: service_name='$service_name'"
 
@@ -91,7 +91,8 @@ for api_file in "$APIS_DIR"/*.yaml; do
 
     # Legge il testo grezzo del file groovy. 
     # 'jq --arg' si occuperà automaticamente di encodare le virgolette e gli a capo nel JSON!
-    DISPATCHER_SCRIPT=$(cat "$groovy_script")
+    DISPATCHER_SCRIPT=$(cat "$groovy_script" | tr -d '\r')
+
 
     # Costruisci un payload compatibile con Microcks "SCRIPT" dispatcher
     PAYLOAD=$(/tmp/jq -n \
@@ -112,12 +113,16 @@ for api_file in "$APIS_DIR"/*.yaml; do
         parameterConstraints: $parameterConstraints
       }')
 
-    curl -s -X PUT "${MICROCKS_URL}/services/${service_id}/operation?operationName=POST%20/register" \
+    if curl --fail-with-body -sS -X PUT "${MICROCKS_URL}/services/${service_id}/operation?operationName=POST%20/register" \
       -H "Authorization: Bearer $TOKEN" \
       -H "Content-Type: application/json" \
-      -d "$PAYLOAD"
-
-    echo "✅ Dispatcher configured for $service_name /register"
+      -d "$PAYLOAD" > /tmp/dispatcher_patch_response.json; then
+      echo "✅ Dispatcher configured for $service_name /register"
+    else
+      echo "❌ Dispatcher patch failed for $service_name /register"
+      [ -s /tmp/dispatcher_patch_response.json ] && cat /tmp/dispatcher_patch_response.json
+      continue
+    fi
 
   else
     echo "⚠️  No script found for $api_filename — skipping dispatcher patch."

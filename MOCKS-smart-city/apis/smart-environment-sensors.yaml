@@ -170,7 +170,7 @@ paths:
           - light
           - pressure
           - wind_speed
-        description: Filter by sensor type — use exact enum value
+        description: "Filter by sensor type \u2014 use exact enum value"
         examples:
           air_quality:
             value: air_quality

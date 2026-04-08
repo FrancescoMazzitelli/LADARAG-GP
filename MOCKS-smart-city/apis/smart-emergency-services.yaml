@@ -187,8 +187,7 @@ paths:
               examples:
                 example_list:
                   value:
-                  - &id006
-                    id: 1
+                  - id: 1
                     zoneId: Z-OVEST
                     type: fire
                     location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
@@ -199,8 +198,7 @@ paths:
                     dispatchTime: '2025-09-25T09:32:00Z'
                     crewCount: 5
                     vehicleCode: VF-BN-07
-                  - &id002
-                    id: 2
+                  - id: 2
                     zoneId: Z-SUD
                     type: medical
                     location: Azienda Ospedaliera San Pio, Via dell'Esperanto 1, Benevento
@@ -210,8 +208,7 @@ paths:
                     dispatchTime: null
                     crewCount: 3
                     vehicleCode: AMB-BN-02
-                  - &id001
-                    id: 3
+                  - id: 3
                     zoneId: Z-CENTRO
                     type: police
                     location: Questura di Benevento, Via Orazio 5, Benevento
@@ -221,8 +218,7 @@ paths:
                     dispatchTime: null
                     crewCount: 4
                     vehicleCode: POL-BN-03
-                  - &id003
-                    id: 4
+                  - id: 4
                     zoneId: Z-NORD
                     type: rescue
                     location: Protezione Civile, Contrada Olivola, Benevento
@@ -232,8 +228,7 @@ paths:
                     dispatchTime: null
                     crewCount: 6
                     vehicleCode: PC-BN-04
-                  - &id007
-                    id: 5
+                  - id: 5
                     zoneId: Z-EST
                     type: medical
                     location: Croce Rossa Italiana, Via Mustilli 2, Benevento
@@ -243,8 +238,7 @@ paths:
                     dispatchTime: '2025-09-25T08:55:00Z'
                     crewCount: 2
                     vehicleCode: CRI-BN-01
-                  - &id004
-                    id: 6
+                  - id: 6
                     zoneId: Z-NORD
                     type: fire
                     location: Distaccamento VVF Benevento Nord, SS87, Benevento
@@ -254,8 +248,7 @@ paths:
                     dispatchTime: null
                     crewCount: 4
                     vehicleCode: VF-BN-09
-                  - &id005
-                    id: 7
+                  - id: 7
                     zoneId: Z-SUD
                     type: hazmat
                     location: Deposito ARPA Campania, Via Santa Colomba, Benevento
@@ -267,59 +260,323 @@ paths:
                     vehicleCode: HZM-BN-01
                 by_zone_centro:
                   value:
-                  - *id001
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    type: police
+                    location: Questura di Benevento, Via Orazio 5, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: POL-BN-03
                 'true':
                   value:
-                  - *id002
-                  - *id001
-                  - *id003
-                  - *id004
-                  - *id005
+                  - id: 2
+                    zoneId: Z-SUD
+                    type: medical
+                    location: Azienda Ospedaliera San Pio, Via dell'Esperanto 1, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: AMB-BN-02
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    type: police
+                    location: Questura di Benevento, Via Orazio 5, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: POL-BN-03
+                  - id: 4
+                    zoneId: Z-NORD
+                    type: rescue
+                    location: Protezione Civile, Contrada Olivola, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 6
+                    vehicleCode: PC-BN-04
+                  - id: 6
+                    zoneId: Z-NORD
+                    type: fire
+                    location: Distaccamento VVF Benevento Nord, SS87, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: VF-BN-09
+                  - id: 7
+                    zoneId: Z-SUD
+                    type: hazmat
+                    location: Deposito ARPA Campania, Via Santa Colomba, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: HZM-BN-01
                 'false':
                   value:
-                  - *id006
-                  - *id007
+                  - id: 1
+                    zoneId: Z-OVEST
+                    type: fire
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
+                      Benevento
+                    available: false
+                    status: responding
+                    incidentId: INC-20250925-042
+                    dispatchTime: '2025-09-25T09:32:00Z'
+                    crewCount: 5
+                    vehicleCode: VF-BN-07
+                  - id: 5
+                    zoneId: Z-EST
+                    type: medical
+                    location: Croce Rossa Italiana, Via Mustilli 2, Benevento
+                    available: false
+                    status: on-scene
+                    incidentId: INC-20250925-039
+                    dispatchTime: '2025-09-25T08:55:00Z'
+                    crewCount: 2
+                    vehicleCode: CRI-BN-01
                 available_true:
                   value:
-                  - *id002
-                  - *id001
-                  - *id003
-                  - *id004
-                  - *id005
+                  - id: 2
+                    zoneId: Z-SUD
+                    type: medical
+                    location: Azienda Ospedaliera San Pio, Via dell'Esperanto 1, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: AMB-BN-02
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    type: police
+                    location: Questura di Benevento, Via Orazio 5, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: POL-BN-03
+                  - id: 4
+                    zoneId: Z-NORD
+                    type: rescue
+                    location: Protezione Civile, Contrada Olivola, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 6
+                    vehicleCode: PC-BN-04
+                  - id: 6
+                    zoneId: Z-NORD
+                    type: fire
+                    location: Distaccamento VVF Benevento Nord, SS87, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: VF-BN-09
+                  - id: 7
+                    zoneId: Z-SUD
+                    type: hazmat
+                    location: Deposito ARPA Campania, Via Santa Colomba, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: HZM-BN-01
                 medical:
                   value:
-                  - *id002
-                  - *id007
+                  - id: 2
+                    zoneId: Z-SUD
+                    type: medical
+                    location: Azienda Ospedaliera San Pio, Via dell'Esperanto 1, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: AMB-BN-02
+                  - id: 5
+                    zoneId: Z-EST
+                    type: medical
+                    location: Croce Rossa Italiana, Via Mustilli 2, Benevento
+                    available: false
+                    status: on-scene
+                    incidentId: INC-20250925-039
+                    dispatchTime: '2025-09-25T08:55:00Z'
+                    crewCount: 2
+                    vehicleCode: CRI-BN-01
                 fire:
                   value:
-                  - *id006
-                  - *id004
+                  - id: 1
+                    zoneId: Z-OVEST
+                    type: fire
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
+                      Benevento
+                    available: false
+                    status: responding
+                    incidentId: INC-20250925-042
+                    dispatchTime: '2025-09-25T09:32:00Z'
+                    crewCount: 5
+                    vehicleCode: VF-BN-07
+                  - id: 6
+                    zoneId: Z-NORD
+                    type: fire
+                    location: Distaccamento VVF Benevento Nord, SS87, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: VF-BN-09
                 police:
                   value:
-                  - *id001
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    type: police
+                    location: Questura di Benevento, Via Orazio 5, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: POL-BN-03
                 rescue:
                   value:
-                  - *id003
+                  - id: 4
+                    zoneId: Z-NORD
+                    type: rescue
+                    location: Protezione Civile, Contrada Olivola, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 6
+                    vehicleCode: PC-BN-04
                 hazmat:
                   value:
-                  - *id005
+                  - id: 7
+                    zoneId: Z-SUD
+                    type: hazmat
+                    location: Deposito ARPA Campania, Via Santa Colomba, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: HZM-BN-01
                 idle:
                   value:
-                  - *id002
-                  - *id001
-                  - *id003
-                  - *id004
-                  - *id005
+                  - id: 2
+                    zoneId: Z-SUD
+                    type: medical
+                    location: Azienda Ospedaliera San Pio, Via dell'Esperanto 1, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: AMB-BN-02
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    type: police
+                    location: Questura di Benevento, Via Orazio 5, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: POL-BN-03
+                  - id: 4
+                    zoneId: Z-NORD
+                    type: rescue
+                    location: Protezione Civile, Contrada Olivola, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 6
+                    vehicleCode: PC-BN-04
+                  - id: 6
+                    zoneId: Z-NORD
+                    type: fire
+                    location: Distaccamento VVF Benevento Nord, SS87, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: VF-BN-09
+                  - id: 7
+                    zoneId: Z-SUD
+                    type: hazmat
+                    location: Deposito ARPA Campania, Via Santa Colomba, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: HZM-BN-01
                 responding:
                   value:
-                  - *id006
+                  - id: 1
+                    zoneId: Z-OVEST
+                    type: fire
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
+                      Benevento
+                    available: false
+                    status: responding
+                    incidentId: INC-20250925-042
+                    dispatchTime: '2025-09-25T09:32:00Z'
+                    crewCount: 5
+                    vehicleCode: VF-BN-07
                 on-scene:
                   value:
-                  - *id007
+                  - id: 5
+                    zoneId: Z-EST
+                    type: medical
+                    location: Croce Rossa Italiana, Via Mustilli 2, Benevento
+                    available: false
+                    status: on-scene
+                    incidentId: INC-20250925-039
+                    dispatchTime: '2025-09-25T08:55:00Z'
+                    crewCount: 2
+                    vehicleCode: CRI-BN-01
                 by_type_medical:
                   value:
-                  - *id002
-                  - *id007
+                  - id: 2
+                    zoneId: Z-SUD
+                    type: medical
+                    location: Azienda Ospedaliera San Pio, Via dell'Esperanto 1, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: AMB-BN-02
+                  - id: 5
+                    zoneId: Z-EST
+                    type: medical
+                    location: Croce Rossa Italiana, Via Mustilli 2, Benevento
+                    available: false
+                    status: on-scene
+                    incidentId: INC-20250925-039
+                    dispatchTime: '2025-09-25T08:55:00Z'
+                    crewCount: 2
+                    vehicleCode: CRI-BN-01
     post:
       description: Register a new emergency unit in the city response system.
       summary: Register new emergency unit

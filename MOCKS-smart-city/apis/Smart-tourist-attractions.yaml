@@ -219,8 +219,7 @@ paths:
               examples:
                 example_list:
                   value:
-                  - &id001
-                    id: 1
+                  - id: 1
                     zoneId: Z-CENTRO
                     name: Arco di Traiano
                     category: archaeological
@@ -238,8 +237,7 @@ paths:
                     - fr
                     status: open
                     lastUpdated: '2026-03-09T10:10:00Z'
-                  - &id002
-                    id: 2
+                  - id: 2
                     zoneId: Z-CENTRO
                     name: Teatro Romano di Benevento
                     category: archaeological
@@ -256,8 +254,7 @@ paths:
                     - en
                     status: open
                     lastUpdated: '2026-03-09T10:08:00Z'
-                  - &id003
-                    id: 3
+                  - id: 3
                     zoneId: Z-CENTRO
                     name: Rocca dei Rettori
                     category: palace
@@ -274,8 +271,7 @@ paths:
                     - en
                     status: open
                     lastUpdated: '2026-03-09T10:05:00Z'
-                  - &id005
-                    id: 4
+                  - id: 4
                     zoneId: Z-NORD
                     name: Museo del Sannio
                     category: museum
@@ -291,8 +287,7 @@ paths:
                     - it
                     status: open
                     lastUpdated: '2026-03-09T09:50:00Z'
-                  - &id006
-                    id: 5
+                  - id: 5
                     zoneId: Z-SUD
                     name: Ponte Leproso
                     category: monument
@@ -309,8 +304,7 @@ paths:
                     - en
                     status: open
                     lastUpdated: '2026-03-09T09:30:00Z'
-                  - &id007
-                    id: 6
+                  - id: 6
                     zoneId: Z-EST
                     name: Hortus Conclusus
                     category: park
@@ -326,8 +320,7 @@ paths:
                     - it
                     status: open
                     lastUpdated: '2026-03-09T09:15:00Z'
-                  - &id004
-                    id: 7
+                  - id: 7
                     zoneId: Z-CENTRO
                     name: Chiesa di Santa Sofia
                     category: religious
@@ -345,8 +338,7 @@ paths:
                     - de
                     status: open
                     lastUpdated: '2026-03-09T09:00:00Z'
-                  - &id008
-                    id: 8
+                  - id: 8
                     zoneId: Z-NORD
                     name: Pinacoteca Provinciale
                     category: museum
@@ -364,55 +356,486 @@ paths:
                     lastUpdated: '2026-03-09T08:00:00Z'
                 by_zone_centro:
                   value:
-                  - *id001
-                  - *id002
-                  - *id003
-                  - *id004
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    name: Arco di Traiano
+                    category: archaeological
+                    address: Via Traiano, Benevento
+                    openingTime: 09:00
+                    closingTime: '19:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 42
+                    maxCapacity: 200
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    - fr
+                    status: open
+                    lastUpdated: '2026-03-09T10:10:00Z'
+                  - id: 2
+                    zoneId: Z-CENTRO
+                    name: Teatro Romano di Benevento
+                    category: archaeological
+                    address: Piazza Ponzio Telesino, Benevento
+                    openingTime: 09:00
+                    closingTime: '20:00'
+                    ticketPriceEur: 3.0
+                    currentVisitors: 85
+                    maxCapacity: 150
+                    waitingTimeMinutes: 12
+                    wheelchairAccessible: false
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T10:08:00Z'
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    name: Rocca dei Rettori
+                    category: palace
+                    address: Piazza Castello, Benevento
+                    openingTime: '10:00'
+                    closingTime: '18:00'
+                    ticketPriceEur: 5.0
+                    currentVisitors: 15
+                    maxCapacity: 80
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T10:05:00Z'
+                  - id: 7
+                    zoneId: Z-CENTRO
+                    name: Chiesa di Santa Sofia
+                    category: religious
+                    address: Piazza Santa Sofia, Benevento
+                    openingTime: 08:00
+                    closingTime: '20:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 22
+                    maxCapacity: 300
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    - de
+                    status: open
+                    lastUpdated: '2026-03-09T09:00:00Z'
                 open:
                   value:
-                  - *id001
-                  - *id002
-                  - *id003
-                  - *id005
-                  - *id006
-                  - *id007
-                  - *id004
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    name: Arco di Traiano
+                    category: archaeological
+                    address: Via Traiano, Benevento
+                    openingTime: 09:00
+                    closingTime: '19:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 42
+                    maxCapacity: 200
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    - fr
+                    status: open
+                    lastUpdated: '2026-03-09T10:10:00Z'
+                  - id: 2
+                    zoneId: Z-CENTRO
+                    name: Teatro Romano di Benevento
+                    category: archaeological
+                    address: Piazza Ponzio Telesino, Benevento
+                    openingTime: 09:00
+                    closingTime: '20:00'
+                    ticketPriceEur: 3.0
+                    currentVisitors: 85
+                    maxCapacity: 150
+                    waitingTimeMinutes: 12
+                    wheelchairAccessible: false
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T10:08:00Z'
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    name: Rocca dei Rettori
+                    category: palace
+                    address: Piazza Castello, Benevento
+                    openingTime: '10:00'
+                    closingTime: '18:00'
+                    ticketPriceEur: 5.0
+                    currentVisitors: 15
+                    maxCapacity: 80
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T10:05:00Z'
+                  - id: 4
+                    zoneId: Z-NORD
+                    name: Museo del Sannio
+                    category: museum
+                    address: Piazza Matteotti 1, Benevento
+                    openingTime: 09:00
+                    closingTime: '17:00'
+                    ticketPriceEur: 4.0
+                    currentVisitors: 30
+                    maxCapacity: 120
+                    waitingTimeMinutes: 5
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: open
+                    lastUpdated: '2026-03-09T09:50:00Z'
+                  - id: 5
+                    zoneId: Z-SUD
+                    name: Ponte Leproso
+                    category: monument
+                    address: Via Appia Antica, Benevento
+                    openingTime: 00:00
+                    closingTime: '23:59'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 8
+                    maxCapacity: 500
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T09:30:00Z'
+                  - id: 6
+                    zoneId: Z-EST
+                    name: Hortus Conclusus
+                    category: park
+                    address: Vico Noce, Benevento
+                    openingTime: 09:00
+                    closingTime: '13:00'
+                    ticketPriceEur: 2.0
+                    currentVisitors: 12
+                    maxCapacity: 60
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: false
+                    availableLanguages:
+                    - it
+                    status: open
+                    lastUpdated: '2026-03-09T09:15:00Z'
+                  - id: 7
+                    zoneId: Z-CENTRO
+                    name: Chiesa di Santa Sofia
+                    category: religious
+                    address: Piazza Santa Sofia, Benevento
+                    openingTime: 08:00
+                    closingTime: '20:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 22
+                    maxCapacity: 300
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    - de
+                    status: open
+                    lastUpdated: '2026-03-09T09:00:00Z'
                 temporarily_closed:
                   value:
-                  - *id008
+                  - id: 8
+                    zoneId: Z-NORD
+                    name: Pinacoteca Provinciale
+                    category: museum
+                    address: Corso Garibaldi 2, Benevento
+                    openingTime: 09:00
+                    closingTime: '13:00'
+                    ticketPriceEur: 3.0
+                    currentVisitors: 18
+                    maxCapacity: 80
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: temporarily_closed
+                    lastUpdated: '2026-03-09T08:00:00Z'
                 closed:
                   value: []
                 accessible_only:
                   value:
-                  - *id001
-                  - *id003
-                  - *id005
-                  - *id006
-                  - *id004
-                  - *id008
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    name: Arco di Traiano
+                    category: archaeological
+                    address: Via Traiano, Benevento
+                    openingTime: 09:00
+                    closingTime: '19:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 42
+                    maxCapacity: 200
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    - fr
+                    status: open
+                    lastUpdated: '2026-03-09T10:10:00Z'
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    name: Rocca dei Rettori
+                    category: palace
+                    address: Piazza Castello, Benevento
+                    openingTime: '10:00'
+                    closingTime: '18:00'
+                    ticketPriceEur: 5.0
+                    currentVisitors: 15
+                    maxCapacity: 80
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T10:05:00Z'
+                  - id: 4
+                    zoneId: Z-NORD
+                    name: Museo del Sannio
+                    category: museum
+                    address: Piazza Matteotti 1, Benevento
+                    openingTime: 09:00
+                    closingTime: '17:00'
+                    ticketPriceEur: 4.0
+                    currentVisitors: 30
+                    maxCapacity: 120
+                    waitingTimeMinutes: 5
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: open
+                    lastUpdated: '2026-03-09T09:50:00Z'
+                  - id: 5
+                    zoneId: Z-SUD
+                    name: Ponte Leproso
+                    category: monument
+                    address: Via Appia Antica, Benevento
+                    openingTime: 00:00
+                    closingTime: '23:59'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 8
+                    maxCapacity: 500
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T09:30:00Z'
+                  - id: 7
+                    zoneId: Z-CENTRO
+                    name: Chiesa di Santa Sofia
+                    category: religious
+                    address: Piazza Santa Sofia, Benevento
+                    openingTime: 08:00
+                    closingTime: '20:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 22
+                    maxCapacity: 300
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    - de
+                    status: open
+                    lastUpdated: '2026-03-09T09:00:00Z'
+                  - id: 8
+                    zoneId: Z-NORD
+                    name: Pinacoteca Provinciale
+                    category: museum
+                    address: Corso Garibaldi 2, Benevento
+                    openingTime: 09:00
+                    closingTime: '13:00'
+                    ticketPriceEur: 3.0
+                    currentVisitors: 18
+                    maxCapacity: 80
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: temporarily_closed
+                    lastUpdated: '2026-03-09T08:00:00Z'
                 museum:
                   value:
-                  - *id005
-                  - *id008
+                  - id: 4
+                    zoneId: Z-NORD
+                    name: Museo del Sannio
+                    category: museum
+                    address: Piazza Matteotti 1, Benevento
+                    openingTime: 09:00
+                    closingTime: '17:00'
+                    ticketPriceEur: 4.0
+                    currentVisitors: 30
+                    maxCapacity: 120
+                    waitingTimeMinutes: 5
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: open
+                    lastUpdated: '2026-03-09T09:50:00Z'
+                  - id: 8
+                    zoneId: Z-NORD
+                    name: Pinacoteca Provinciale
+                    category: museum
+                    address: Corso Garibaldi 2, Benevento
+                    openingTime: 09:00
+                    closingTime: '13:00'
+                    ticketPriceEur: 3.0
+                    currentVisitors: 18
+                    maxCapacity: 80
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: temporarily_closed
+                    lastUpdated: '2026-03-09T08:00:00Z'
                 archaeological:
                   value:
-                  - *id001
-                  - *id002
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    name: Arco di Traiano
+                    category: archaeological
+                    address: Via Traiano, Benevento
+                    openingTime: 09:00
+                    closingTime: '19:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 42
+                    maxCapacity: 200
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    - fr
+                    status: open
+                    lastUpdated: '2026-03-09T10:10:00Z'
+                  - id: 2
+                    zoneId: Z-CENTRO
+                    name: Teatro Romano di Benevento
+                    category: archaeological
+                    address: Piazza Ponzio Telesino, Benevento
+                    openingTime: 09:00
+                    closingTime: '20:00'
+                    ticketPriceEur: 3.0
+                    currentVisitors: 85
+                    maxCapacity: 150
+                    waitingTimeMinutes: 12
+                    wheelchairAccessible: false
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T10:08:00Z'
                 monument:
                   value:
-                  - *id006
+                  - id: 5
+                    zoneId: Z-SUD
+                    name: Ponte Leproso
+                    category: monument
+                    address: Via Appia Antica, Benevento
+                    openingTime: 00:00
+                    closingTime: '23:59'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 8
+                    maxCapacity: 500
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T09:30:00Z'
                 park:
                   value:
-                  - *id007
+                  - id: 6
+                    zoneId: Z-EST
+                    name: Hortus Conclusus
+                    category: park
+                    address: Vico Noce, Benevento
+                    openingTime: 09:00
+                    closingTime: '13:00'
+                    ticketPriceEur: 2.0
+                    currentVisitors: 12
+                    maxCapacity: 60
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: false
+                    availableLanguages:
+                    - it
+                    status: open
+                    lastUpdated: '2026-03-09T09:15:00Z'
                 religious:
                   value:
-                  - *id004
+                  - id: 7
+                    zoneId: Z-CENTRO
+                    name: Chiesa di Santa Sofia
+                    category: religious
+                    address: Piazza Santa Sofia, Benevento
+                    openingTime: 08:00
+                    closingTime: '20:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 22
+                    maxCapacity: 300
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    - de
+                    status: open
+                    lastUpdated: '2026-03-09T09:00:00Z'
                 palace:
                   value:
-                  - *id003
+                  - id: 3
+                    zoneId: Z-CENTRO
+                    name: Rocca dei Rettori
+                    category: palace
+                    address: Piazza Castello, Benevento
+                    openingTime: '10:00'
+                    closingTime: '18:00'
+                    ticketPriceEur: 5.0
+                    currentVisitors: 15
+                    maxCapacity: 80
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T10:05:00Z'
                 by_status_temporarily_closed:
                   value:
-                  - *id008
+                  - id: 8
+                    zoneId: Z-NORD
+                    name: Pinacoteca Provinciale
+                    category: museum
+                    address: Corso Garibaldi 2, Benevento
+                    openingTime: 09:00
+                    closingTime: '13:00'
+                    ticketPriceEur: 3.0
+                    currentVisitors: 18
+                    maxCapacity: 80
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: temporarily_closed
+                    lastUpdated: '2026-03-09T08:00:00Z'
     post:
       description: Registers a newly monitored tourist attraction into the city's
         tourism ecosystem.

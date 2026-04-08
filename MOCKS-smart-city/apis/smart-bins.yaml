@@ -172,8 +172,7 @@ paths:
               examples:
                 example_list:
                   value:
-                  - &id001
-                    id: 1
+                  - id: 1
                     zoneId: Z-CENTRO
                     location: Corso Garibaldi angolo Via Roma, Benevento
                     fillLevel: 35
@@ -182,8 +181,7 @@ paths:
                     binType: general
                     sensorBattery: 88
                     status: normal
-                  - &id004
-                    id: 2
+                  - id: 2
                     zoneId: Z-NORD
                     location: Piazza Risorgimento, Benevento
                     fillLevel: 92
@@ -192,8 +190,7 @@ paths:
                     binType: recyclable
                     sensorBattery: 41
                     status: full
-                  - &id003
-                    id: 3
+                  - id: 3
                     zoneId: Z-SUD
                     location: Villa Comunale, Viale dei Rettori, Benevento
                     fillLevel: 100
@@ -202,8 +199,7 @@ paths:
                     binType: organic
                     sensorBattery: 72
                     status: overflowing
-                  - &id005
-                    id: 4
+                  - id: 4
                     zoneId: Z-EST
                     location: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
                     fillLevel: 18
@@ -212,8 +208,7 @@ paths:
                     binType: general
                     sensorBattery: 95
                     status: normal
-                  - &id002
-                    id: 5
+                  - id: 5
                     zoneId: Z-CENTRO
                     location: Piazza Santa Sofia, Benevento
                     fillLevel: 60
@@ -222,8 +217,7 @@ paths:
                     binType: glass
                     sensorBattery: 63
                     status: normal
-                  - &id006
-                    id: 6
+                  - id: 6
                     zoneId: Z-NORD
                     location: Stadio Ciro Vigorito, Ingresso Ovest, Benevento
                     fillLevel: 45
@@ -232,8 +226,7 @@ paths:
                     binType: recyclable
                     sensorBattery: 80
                     status: normal
-                  - &id008
-                    id: 7
+                  - id: 7
                     zoneId: Z-SUD
                     location: Ospedale San Pio, Ingresso Emergenze, Benevento
                     fillLevel: 0
@@ -242,8 +235,7 @@ paths:
                     binType: general
                     sensorBattery: 0
                     status: offline
-                  - &id007
-                    id: 8
+                  - id: 8
                     zoneId: Z-EST
                     location: Via Appia Antica km 243, Benevento
                     fillLevel: 50
@@ -254,51 +246,219 @@ paths:
                     status: maintenance
                 by_zone_centro:
                   value:
-                  - *id001
-                  - *id002
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    location: Corso Garibaldi angolo Via Roma, Benevento
+                    fillLevel: 35
+                    lastEmptied: '2025-09-24T07:00:00Z'
+                    nextCollection: '2025-09-26T07:00:00Z'
+                    binType: general
+                    sensorBattery: 88
+                    status: normal
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    location: Piazza Santa Sofia, Benevento
+                    fillLevel: 60
+                    lastEmptied: '2025-09-24T12:00:00Z'
+                    nextCollection: '2025-09-26T12:00:00Z'
+                    binType: glass
+                    sensorBattery: 63
+                    status: normal
                 overflowing:
                   value:
-                  - *id003
+                  - id: 3
+                    zoneId: Z-SUD
+                    location: Villa Comunale, Viale dei Rettori, Benevento
+                    fillLevel: 100
+                    lastEmptied: '2025-09-21T06:00:00Z'
+                    nextCollection: '2025-09-25T06:00:00Z'
+                    binType: organic
+                    sensorBattery: 72
+                    status: overflowing
                 full:
                   value:
-                  - *id004
+                  - id: 2
+                    zoneId: Z-NORD
+                    location: Piazza Risorgimento, Benevento
+                    fillLevel: 92
+                    lastEmptied: '2025-09-22T08:00:00Z'
+                    nextCollection: '2025-09-25T08:00:00Z'
+                    binType: recyclable
+                    sensorBattery: 41
+                    status: full
                 normal:
                   value:
-                  - *id001
-                  - *id005
-                  - *id002
-                  - *id006
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    location: Corso Garibaldi angolo Via Roma, Benevento
+                    fillLevel: 35
+                    lastEmptied: '2025-09-24T07:00:00Z'
+                    nextCollection: '2025-09-26T07:00:00Z'
+                    binType: general
+                    sensorBattery: 88
+                    status: normal
+                  - id: 4
+                    zoneId: Z-EST
+                    location: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
+                    fillLevel: 18
+                    lastEmptied: '2025-09-25T05:00:00Z'
+                    nextCollection: '2025-09-27T05:00:00Z'
+                    binType: general
+                    sensorBattery: 95
+                    status: normal
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    location: Piazza Santa Sofia, Benevento
+                    fillLevel: 60
+                    lastEmptied: '2025-09-24T12:00:00Z'
+                    nextCollection: '2025-09-26T12:00:00Z'
+                    binType: glass
+                    sensorBattery: 63
+                    status: normal
+                  - id: 6
+                    zoneId: Z-NORD
+                    location: Stadio Ciro Vigorito, Ingresso Ovest, Benevento
+                    fillLevel: 45
+                    lastEmptied: '2025-09-24T16:00:00Z'
+                    nextCollection: '2025-09-26T16:00:00Z'
+                    binType: recyclable
+                    sensorBattery: 80
+                    status: normal
                 maintenance:
                   value:
-                  - *id007
+                  - id: 8
+                    zoneId: Z-EST
+                    location: Via Appia Antica km 243, Benevento
+                    fillLevel: 50
+                    lastEmptied: '2025-09-23T10:00:00Z'
+                    nextCollection: '2025-09-25T10:00:00Z'
+                    binType: electronic
+                    sensorBattery: 55
+                    status: maintenance
                 offline:
                   value:
-                  - *id008
+                  - id: 7
+                    zoneId: Z-SUD
+                    location: Ospedale San Pio, Ingresso Emergenze, Benevento
+                    fillLevel: 0
+                    lastEmptied: '2025-09-25T06:00:00Z'
+                    nextCollection: '2025-09-27T06:00:00Z'
+                    binType: general
+                    sensorBattery: 0
+                    status: offline
                 general:
                   value:
-                  - *id001
-                  - *id005
-                  - *id008
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    location: Corso Garibaldi angolo Via Roma, Benevento
+                    fillLevel: 35
+                    lastEmptied: '2025-09-24T07:00:00Z'
+                    nextCollection: '2025-09-26T07:00:00Z'
+                    binType: general
+                    sensorBattery: 88
+                    status: normal
+                  - id: 4
+                    zoneId: Z-EST
+                    location: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
+                    fillLevel: 18
+                    lastEmptied: '2025-09-25T05:00:00Z'
+                    nextCollection: '2025-09-27T05:00:00Z'
+                    binType: general
+                    sensorBattery: 95
+                    status: normal
+                  - id: 7
+                    zoneId: Z-SUD
+                    location: Ospedale San Pio, Ingresso Emergenze, Benevento
+                    fillLevel: 0
+                    lastEmptied: '2025-09-25T06:00:00Z'
+                    nextCollection: '2025-09-27T06:00:00Z'
+                    binType: general
+                    sensorBattery: 0
+                    status: offline
                 recyclable:
                   value:
-                  - *id004
-                  - *id006
+                  - id: 2
+                    zoneId: Z-NORD
+                    location: Piazza Risorgimento, Benevento
+                    fillLevel: 92
+                    lastEmptied: '2025-09-22T08:00:00Z'
+                    nextCollection: '2025-09-25T08:00:00Z'
+                    binType: recyclable
+                    sensorBattery: 41
+                    status: full
+                  - id: 6
+                    zoneId: Z-NORD
+                    location: Stadio Ciro Vigorito, Ingresso Ovest, Benevento
+                    fillLevel: 45
+                    lastEmptied: '2025-09-24T16:00:00Z'
+                    nextCollection: '2025-09-26T16:00:00Z'
+                    binType: recyclable
+                    sensorBattery: 80
+                    status: normal
                 organic:
                   value:
-                  - *id003
+                  - id: 3
+                    zoneId: Z-SUD
+                    location: Villa Comunale, Viale dei Rettori, Benevento
+                    fillLevel: 100
+                    lastEmptied: '2025-09-21T06:00:00Z'
+                    nextCollection: '2025-09-25T06:00:00Z'
+                    binType: organic
+                    sensorBattery: 72
+                    status: overflowing
                 glass:
                   value:
-                  - *id002
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    location: Piazza Santa Sofia, Benevento
+                    fillLevel: 60
+                    lastEmptied: '2025-09-24T12:00:00Z'
+                    nextCollection: '2025-09-26T12:00:00Z'
+                    binType: glass
+                    sensorBattery: 63
+                    status: normal
                 electronic:
                   value:
-                  - *id007
+                  - id: 8
+                    zoneId: Z-EST
+                    location: Via Appia Antica km 243, Benevento
+                    fillLevel: 50
+                    lastEmptied: '2025-09-23T10:00:00Z'
+                    nextCollection: '2025-09-25T10:00:00Z'
+                    binType: electronic
+                    sensorBattery: 55
+                    status: maintenance
                 by_status_overflowing:
                   value:
-                  - *id003
+                  - id: 3
+                    zoneId: Z-SUD
+                    location: Villa Comunale, Viale dei Rettori, Benevento
+                    fillLevel: 100
+                    lastEmptied: '2025-09-21T06:00:00Z'
+                    nextCollection: '2025-09-25T06:00:00Z'
+                    binType: organic
+                    sensorBattery: 72
+                    status: overflowing
                 by_type_recyclable:
                   value:
-                  - *id004
-                  - *id006
+                  - id: 2
+                    zoneId: Z-NORD
+                    location: Piazza Risorgimento, Benevento
+                    fillLevel: 92
+                    lastEmptied: '2025-09-22T08:00:00Z'
+                    nextCollection: '2025-09-25T08:00:00Z'
+                    binType: recyclable
+                    sensorBattery: 41
+                    status: full
+                  - id: 6
+                    zoneId: Z-NORD
+                    location: Stadio Ciro Vigorito, Ingresso Ovest, Benevento
+                    fillLevel: 45
+                    lastEmptied: '2025-09-24T16:00:00Z'
+                    nextCollection: '2025-09-26T16:00:00Z'
+                    binType: recyclable
+                    sensorBattery: 80
+                    status: normal
     post:
       description: Register a new smart waste bin in the city waste management system.
       summary: Register new bin

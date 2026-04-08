@@ -190,8 +190,7 @@ paths:
               examples:
                 example_list:
                   value:
-                  - &id001
-                    id: 1
+                  - id: 1
                     zoneId: Z-CENTRO
                     reporterName: Mario Rossi
                     location: Piazza Castello, Benevento
@@ -200,8 +199,7 @@ paths:
                       della Rocca dei Rettori.
                     status: open
                     submittedAt: '2025-09-24T14:30:00Z'
-                  - &id007
-                    id: 2
+                  - id: 2
                     zoneId: Z-NORD
                     reporterName: Giulia Bianchi
                     location: Via Posillipo, Benevento
@@ -209,8 +207,7 @@ paths:
                     description: Buca pericolosa e profonda sul manto stradale.
                     status: in_progress
                     submittedAt: '2025-09-23T09:15:00Z'
-                  - &id003
-                    id: 3
+                  - id: 3
                     zoneId: Z-SUD
                     reporterName: Antonio De Lucia
                     location: Ponte Leproso, Via Appia Antica, Benevento
@@ -219,8 +216,7 @@ paths:
                       storico.
                     status: open
                     submittedAt: '2025-09-24T20:00:00Z'
-                  - &id004
-                    id: 4
+                  - id: 4
                     zoneId: Z-EST
                     reporterName: Smart City Assistant
                     location: Terminal Bus Extraurbani, Benevento
@@ -229,8 +225,7 @@ paths:
                       nelle ore notturne.'
                     status: open
                     submittedAt: '2025-09-25T01:30:00Z'
-                  - &id002
-                    id: 5
+                  - id: 5
                     zoneId: Z-CENTRO
                     reporterName: Lucia Esposito
                     location: Corso Garibaldi 45, Benevento
@@ -239,8 +234,7 @@ paths:
                       con Via Roma.
                     status: resolved
                     submittedAt: '2025-09-23T11:00:00Z'
-                  - &id008
-                    id: 6
+                  - id: 6
                     zoneId: Z-NORD
                     reporterName: Carlo Mancini
                     location: Viale Atlantici, Benevento
@@ -248,8 +242,7 @@ paths:
                     description: Recinzione di cantiere divelta pericolosa per i pedoni.
                     status: in_progress
                     submittedAt: '2025-09-24T08:00:00Z'
-                  - &id005
-                    id: 7
+                  - id: 7
                     zoneId: Z-SUD
                     reporterName: Anna Ferraro
                     location: Via Santa Colomba, Benevento
@@ -258,8 +251,7 @@ paths:
                       marciapiede.
                     status: open
                     submittedAt: '2025-09-25T07:45:00Z'
-                  - &id006
-                    id: 8
+                  - id: 8
                     zoneId: Z-EST
                     reporterName: Smart City Assistant
                     location: Via Appia km 243, Benevento
@@ -270,55 +262,265 @@ paths:
                     submittedAt: '2025-09-25T09:00:00Z'
                 by_zone_centro:
                   value:
-                  - *id001
-                  - *id002
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    reporterName: Mario Rossi
+                    location: Piazza Castello, Benevento
+                    category: sanitation
+                    description: Cestino traboccante di rifiuti vicino all'ingresso
+                      della Rocca dei Rettori.
+                    status: open
+                    submittedAt: '2025-09-24T14:30:00Z'
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    reporterName: Lucia Esposito
+                    location: Corso Garibaldi 45, Benevento
+                    category: traffic
+                    description: Semaforo fuori servizio in corrispondenza dell'incrocio
+                      con Via Roma.
+                    status: resolved
+                    submittedAt: '2025-09-23T11:00:00Z'
                 open:
                   value:
-                  - *id001
-                  - *id003
-                  - *id004
-                  - *id005
-                  - *id006
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    reporterName: Mario Rossi
+                    location: Piazza Castello, Benevento
+                    category: sanitation
+                    description: Cestino traboccante di rifiuti vicino all'ingresso
+                      della Rocca dei Rettori.
+                    status: open
+                    submittedAt: '2025-09-24T14:30:00Z'
+                  - id: 3
+                    zoneId: Z-SUD
+                    reporterName: Antonio De Lucia
+                    location: Ponte Leproso, Via Appia Antica, Benevento
+                    category: lighting
+                    description: Lampione spento sul percorso pedonale verso il ponte
+                      storico.
+                    status: open
+                    submittedAt: '2025-09-24T20:00:00Z'
+                  - id: 4
+                    zoneId: Z-EST
+                    reporterName: Smart City Assistant
+                    location: Terminal Bus Extraurbani, Benevento
+                    category: environment
+                    description: 'Segnalazione automatica: livello di rumore elevato
+                      nelle ore notturne.'
+                    status: open
+                    submittedAt: '2025-09-25T01:30:00Z'
+                  - id: 7
+                    zoneId: Z-SUD
+                    reporterName: Anna Ferraro
+                    location: Via Santa Colomba, Benevento
+                    category: infrastructure
+                    description: Guasto all'impianto fognario con allagamento del
+                      marciapiede.
+                    status: open
+                    submittedAt: '2025-09-25T07:45:00Z'
+                  - id: 8
+                    zoneId: Z-EST
+                    reporterName: Smart City Assistant
+                    location: Via Appia km 243, Benevento
+                    category: sanitation
+                    description: 'Segnalazione automatica: cestino id=8 in stato offline
+                      da oltre 48 ore.'
+                    status: open
+                    submittedAt: '2025-09-25T09:00:00Z'
                 resolved:
                   value:
-                  - *id002
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    reporterName: Lucia Esposito
+                    location: Corso Garibaldi 45, Benevento
+                    category: traffic
+                    description: Semaforo fuori servizio in corrispondenza dell'incrocio
+                      con Via Roma.
+                    status: resolved
+                    submittedAt: '2025-09-23T11:00:00Z'
                 in_progress:
                   value:
-                  - *id007
-                  - *id008
+                  - id: 2
+                    zoneId: Z-NORD
+                    reporterName: Giulia Bianchi
+                    location: Via Posillipo, Benevento
+                    category: infrastructure
+                    description: Buca pericolosa e profonda sul manto stradale.
+                    status: in_progress
+                    submittedAt: '2025-09-23T09:15:00Z'
+                  - id: 6
+                    zoneId: Z-NORD
+                    reporterName: Carlo Mancini
+                    location: Viale Atlantici, Benevento
+                    category: safety
+                    description: Recinzione di cantiere divelta pericolosa per i pedoni.
+                    status: in_progress
+                    submittedAt: '2025-09-24T08:00:00Z'
                 sanitation:
                   value:
-                  - *id001
-                  - *id006
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    reporterName: Mario Rossi
+                    location: Piazza Castello, Benevento
+                    category: sanitation
+                    description: Cestino traboccante di rifiuti vicino all'ingresso
+                      della Rocca dei Rettori.
+                    status: open
+                    submittedAt: '2025-09-24T14:30:00Z'
+                  - id: 8
+                    zoneId: Z-EST
+                    reporterName: Smart City Assistant
+                    location: Via Appia km 243, Benevento
+                    category: sanitation
+                    description: 'Segnalazione automatica: cestino id=8 in stato offline
+                      da oltre 48 ore.'
+                    status: open
+                    submittedAt: '2025-09-25T09:00:00Z'
                 infrastructure:
                   value:
-                  - *id007
-                  - *id005
+                  - id: 2
+                    zoneId: Z-NORD
+                    reporterName: Giulia Bianchi
+                    location: Via Posillipo, Benevento
+                    category: infrastructure
+                    description: Buca pericolosa e profonda sul manto stradale.
+                    status: in_progress
+                    submittedAt: '2025-09-23T09:15:00Z'
+                  - id: 7
+                    zoneId: Z-SUD
+                    reporterName: Anna Ferraro
+                    location: Via Santa Colomba, Benevento
+                    category: infrastructure
+                    description: Guasto all'impianto fognario con allagamento del
+                      marciapiede.
+                    status: open
+                    submittedAt: '2025-09-25T07:45:00Z'
                 lighting:
                   value:
-                  - *id003
+                  - id: 3
+                    zoneId: Z-SUD
+                    reporterName: Antonio De Lucia
+                    location: Ponte Leproso, Via Appia Antica, Benevento
+                    category: lighting
+                    description: Lampione spento sul percorso pedonale verso il ponte
+                      storico.
+                    status: open
+                    submittedAt: '2025-09-24T20:00:00Z'
                 environment:
                   value:
-                  - *id004
+                  - id: 4
+                    zoneId: Z-EST
+                    reporterName: Smart City Assistant
+                    location: Terminal Bus Extraurbani, Benevento
+                    category: environment
+                    description: 'Segnalazione automatica: livello di rumore elevato
+                      nelle ore notturne.'
+                    status: open
+                    submittedAt: '2025-09-25T01:30:00Z'
                 traffic:
                   value:
-                  - *id002
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    reporterName: Lucia Esposito
+                    location: Corso Garibaldi 45, Benevento
+                    category: traffic
+                    description: Semaforo fuori servizio in corrispondenza dell'incrocio
+                      con Via Roma.
+                    status: resolved
+                    submittedAt: '2025-09-23T11:00:00Z'
                 safety:
                   value:
-                  - *id008
+                  - id: 6
+                    zoneId: Z-NORD
+                    reporterName: Carlo Mancini
+                    location: Viale Atlantici, Benevento
+                    category: safety
+                    description: Recinzione di cantiere divelta pericolosa per i pedoni.
+                    status: in_progress
+                    submittedAt: '2025-09-24T08:00:00Z'
                 by_status_open:
                   value:
-                  - *id001
-                  - *id003
-                  - *id004
-                  - *id005
-                  - *id006
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    reporterName: Mario Rossi
+                    location: Piazza Castello, Benevento
+                    category: sanitation
+                    description: Cestino traboccante di rifiuti vicino all'ingresso
+                      della Rocca dei Rettori.
+                    status: open
+                    submittedAt: '2025-09-24T14:30:00Z'
+                  - id: 3
+                    zoneId: Z-SUD
+                    reporterName: Antonio De Lucia
+                    location: Ponte Leproso, Via Appia Antica, Benevento
+                    category: lighting
+                    description: Lampione spento sul percorso pedonale verso il ponte
+                      storico.
+                    status: open
+                    submittedAt: '2025-09-24T20:00:00Z'
+                  - id: 4
+                    zoneId: Z-EST
+                    reporterName: Smart City Assistant
+                    location: Terminal Bus Extraurbani, Benevento
+                    category: environment
+                    description: 'Segnalazione automatica: livello di rumore elevato
+                      nelle ore notturne.'
+                    status: open
+                    submittedAt: '2025-09-25T01:30:00Z'
+                  - id: 7
+                    zoneId: Z-SUD
+                    reporterName: Anna Ferraro
+                    location: Via Santa Colomba, Benevento
+                    category: infrastructure
+                    description: Guasto all'impianto fognario con allagamento del
+                      marciapiede.
+                    status: open
+                    submittedAt: '2025-09-25T07:45:00Z'
+                  - id: 8
+                    zoneId: Z-EST
+                    reporterName: Smart City Assistant
+                    location: Via Appia km 243, Benevento
+                    category: sanitation
+                    description: 'Segnalazione automatica: cestino id=8 in stato offline
+                      da oltre 48 ore.'
+                    status: open
+                    submittedAt: '2025-09-25T09:00:00Z'
                 multiple_zones:
                   value:
-                  - *id001
-                  - *id007
-                  - *id002
-                  - *id008
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    reporterName: Mario Rossi
+                    location: Piazza Castello, Benevento
+                    category: sanitation
+                    description: Cestino traboccante di rifiuti vicino all'ingresso
+                      della Rocca dei Rettori.
+                    status: open
+                    submittedAt: '2025-09-24T14:30:00Z'
+                  - id: 2
+                    zoneId: Z-NORD
+                    reporterName: Giulia Bianchi
+                    location: Via Posillipo, Benevento
+                    category: infrastructure
+                    description: Buca pericolosa e profonda sul manto stradale.
+                    status: in_progress
+                    submittedAt: '2025-09-23T09:15:00Z'
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    reporterName: Lucia Esposito
+                    location: Corso Garibaldi 45, Benevento
+                    category: traffic
+                    description: Semaforo fuori servizio in corrispondenza dell'incrocio
+                      con Via Roma.
+                    status: resolved
+                    submittedAt: '2025-09-23T11:00:00Z'
+                  - id: 6
+                    zoneId: Z-NORD
+                    reporterName: Carlo Mancini
+                    location: Viale Atlantici, Benevento
+                    category: safety
+                    description: Recinzione di cantiere divelta pericolosa per i pedoni.
+                    status: in_progress
+                    submittedAt: '2025-09-24T08:00:00Z'
     post:
       description: 'Submits a new citizen report. This is the primary Actuator endpoint
         for the Smart City Assistant to escalate issues to human operators automatically.

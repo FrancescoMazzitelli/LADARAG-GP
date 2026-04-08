@@ -155,64 +155,56 @@ paths:
               examples:
                 example_list:
                   value:
-                  - &id001
-                    id: 101
+                  - id: 101
                     zoneId: Z-CENTRO
                     location: Corso Garibaldi - Palo 12, Benevento
                     status: 'on'
                     brightness: 80
                     energyConsumption: 1.25
                     smartEnabled: true
-                  - &id005
-                    id: 102
+                  - id: 102
                     zoneId: Z-NORD
                     location: Viale San Lorenzo - Palo 5, Benevento
                     status: 'off'
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: false
-                  - &id003
-                    id: 103
+                  - id: 103
                     zoneId: Z-SUD
                     location: Viale dei Rettori - Palo 8, Benevento
                     status: 'on'
                     brightness: 75
                     energyConsumption: 1.1
                     smartEnabled: true
-                  - &id004
-                    id: 104
+                  - id: 104
                     zoneId: Z-EST
                     location: Via Appia Antica - Palo 3, Benevento
                     status: 'on'
                     brightness: 90
                     energyConsumption: 1.4
                     smartEnabled: true
-                  - &id007
-                    id: 105
+                  - id: 105
                     zoneId: Z-SUD
                     location: Via Mustilli - Palo 3, Benevento
                     status: malfunctioning
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: true
-                  - &id002
-                    id: 106
+                  - id: 106
                     zoneId: Z-CENTRO
                     location: Piazza Santa Sofia - Palo 7, Benevento
                     status: 'on'
                     brightness: 70
                     energyConsumption: 1.05
                     smartEnabled: true
-                  - &id008
-                    id: 107
+                  - id: 107
                     zoneId: Z-NORD
                     location: Via Posillipo - Palo 2, Benevento
                     status: malfunctioning
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: true
-                  - &id006
-                    id: 108
+                  - id: 108
                     zoneId: Z-EST
                     location: Via Pescara - Palo 11, Benevento
                     status: 'off'
@@ -221,44 +213,188 @@ paths:
                     smartEnabled: false
                 by_zone_centro:
                   value:
-                  - *id001
-                  - *id002
+                  - id: 101
+                    zoneId: Z-CENTRO
+                    location: Corso Garibaldi - Palo 12, Benevento
+                    status: 'on'
+                    brightness: 80
+                    energyConsumption: 1.25
+                    smartEnabled: true
+                  - id: 106
+                    zoneId: Z-CENTRO
+                    location: Piazza Santa Sofia - Palo 7, Benevento
+                    status: 'on'
+                    brightness: 70
+                    energyConsumption: 1.05
+                    smartEnabled: true
                 'on':
                   value:
-                  - *id001
-                  - *id003
-                  - *id004
-                  - *id002
+                  - id: 101
+                    zoneId: Z-CENTRO
+                    location: Corso Garibaldi - Palo 12, Benevento
+                    status: 'on'
+                    brightness: 80
+                    energyConsumption: 1.25
+                    smartEnabled: true
+                  - id: 103
+                    zoneId: Z-SUD
+                    location: Viale dei Rettori - Palo 8, Benevento
+                    status: 'on'
+                    brightness: 75
+                    energyConsumption: 1.1
+                    smartEnabled: true
+                  - id: 104
+                    zoneId: Z-EST
+                    location: Via Appia Antica - Palo 3, Benevento
+                    status: 'on'
+                    brightness: 90
+                    energyConsumption: 1.4
+                    smartEnabled: true
+                  - id: 106
+                    zoneId: Z-CENTRO
+                    location: Piazza Santa Sofia - Palo 7, Benevento
+                    status: 'on'
+                    brightness: 70
+                    energyConsumption: 1.05
+                    smartEnabled: true
                 'off':
                   value:
-                  - *id005
-                  - *id006
+                  - id: 102
+                    zoneId: Z-NORD
+                    location: Viale San Lorenzo - Palo 5, Benevento
+                    status: 'off'
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: false
+                  - id: 108
+                    zoneId: Z-EST
+                    location: Via Pescara - Palo 11, Benevento
+                    status: 'off'
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: false
                 malfunctioning:
                   value:
-                  - *id007
-                  - *id008
+                  - id: 105
+                    zoneId: Z-SUD
+                    location: Via Mustilli - Palo 3, Benevento
+                    status: malfunctioning
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: true
+                  - id: 107
+                    zoneId: Z-NORD
+                    location: Via Posillipo - Palo 2, Benevento
+                    status: malfunctioning
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: true
                 by_status_malfunctioning:
                   value:
-                  - *id007
-                  - *id008
+                  - id: 105
+                    zoneId: Z-SUD
+                    location: Via Mustilli - Palo 3, Benevento
+                    status: malfunctioning
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: true
+                  - id: 107
+                    zoneId: Z-NORD
+                    location: Via Posillipo - Palo 2, Benevento
+                    status: malfunctioning
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: true
                 'true':
                   value:
-                  - *id001
-                  - *id003
-                  - *id004
-                  - *id007
-                  - *id002
-                  - *id008
+                  - id: 101
+                    zoneId: Z-CENTRO
+                    location: Corso Garibaldi - Palo 12, Benevento
+                    status: 'on'
+                    brightness: 80
+                    energyConsumption: 1.25
+                    smartEnabled: true
+                  - id: 103
+                    zoneId: Z-SUD
+                    location: Viale dei Rettori - Palo 8, Benevento
+                    status: 'on'
+                    brightness: 75
+                    energyConsumption: 1.1
+                    smartEnabled: true
+                  - id: 104
+                    zoneId: Z-EST
+                    location: Via Appia Antica - Palo 3, Benevento
+                    status: 'on'
+                    brightness: 90
+                    energyConsumption: 1.4
+                    smartEnabled: true
+                  - id: 105
+                    zoneId: Z-SUD
+                    location: Via Mustilli - Palo 3, Benevento
+                    status: malfunctioning
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: true
+                  - id: 106
+                    zoneId: Z-CENTRO
+                    location: Piazza Santa Sofia - Palo 7, Benevento
+                    status: 'on'
+                    brightness: 70
+                    energyConsumption: 1.05
+                    smartEnabled: true
+                  - id: 107
+                    zoneId: Z-NORD
+                    location: Via Posillipo - Palo 2, Benevento
+                    status: malfunctioning
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: true
                 'false':
                   value:
-                  - *id005
-                  - *id006
+                  - id: 102
+                    zoneId: Z-NORD
+                    location: Viale San Lorenzo - Palo 5, Benevento
+                    status: 'off'
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: false
+                  - id: 108
+                    zoneId: Z-EST
+                    location: Via Pescara - Palo 11, Benevento
+                    status: 'off'
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: false
                 multiple_zones:
                   value:
-                  - *id001
-                  - *id005
-                  - *id002
-                  - *id008
+                  - id: 101
+                    zoneId: Z-CENTRO
+                    location: Corso Garibaldi - Palo 12, Benevento
+                    status: 'on'
+                    brightness: 80
+                    energyConsumption: 1.25
+                    smartEnabled: true
+                  - id: 102
+                    zoneId: Z-NORD
+                    location: Viale San Lorenzo - Palo 5, Benevento
+                    status: 'off'
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: false
+                  - id: 106
+                    zoneId: Z-CENTRO
+                    location: Piazza Santa Sofia - Palo 7, Benevento
+                    status: 'on'
+                    brightness: 70
+                    energyConsumption: 1.05
+                    smartEnabled: true
+                  - id: 107
+                    zoneId: Z-NORD
+                    location: Via Posillipo - Palo 2, Benevento
+                    status: malfunctioning
+                    brightness: 0
+                    energyConsumption: 0.0
+                    smartEnabled: true
     post:
       description: Registers a newly installed smart light pole into the city's infrastructure
         grid.

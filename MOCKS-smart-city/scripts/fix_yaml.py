@@ -1,6 +1,7 @@
 import yaml
 import glob
 import os
+import sys
 
 '''
 Script per risolvere il problema degli alias/ancore YAML nei file delle API.
@@ -15,9 +16,28 @@ class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
-# Trova tutti i file yaml nella cartella delle API
-cartella_apis = os.path.join("MOCKS-smart-city", "apis", "*.yaml")
-file_trovati = glob.glob(cartella_apis)
+# Trova tutti i file yaml da processare.
+# Uso:
+#   python fix_yaml.py                 -> prova /apis/*.yaml, poi ../apis/*.yaml
+#   python fix_yaml.py /apis/*.yaml    -> pattern esplicito
+#   python fix_yaml.py ./apis          -> directory (auto *.yaml)
+if len(sys.argv) > 1:
+    input_path = sys.argv[1]
+    if os.path.isdir(input_path):
+        pattern = os.path.join(input_path, "*.yaml")
+    else:
+        pattern = input_path
+else:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    candidate_container = "/apis/*.yaml"
+    candidate_repo = os.path.abspath(os.path.join(script_dir, "..", "apis", "*.yaml"))
+    pattern = candidate_container if glob.glob(candidate_container) else candidate_repo
+
+file_trovati = sorted(glob.glob(pattern))
+
+if not file_trovati:
+    print(f"Nessun file YAML trovato con pattern: {pattern}")
+    sys.exit(1)
 
 for filepath in file_trovati:
     # 1. Legge il file (PyYAML risolve automaticamente * e & in memoria)
@@ -30,4 +50,4 @@ for filepath in file_trovati:
         
     print(f"Risolto: {filepath}")
 
-print("Completato! Tutte le ancore YAML sono state espanse.")
+print(f"Completato! Processati {len(file_trovati)} file YAML senza ancore/alias.")

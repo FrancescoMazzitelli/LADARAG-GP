@@ -35,6 +35,8 @@ services:
       image: quay.io/microcks/microcks-cli:latest
       container_name: mock-deployer
       depends_on:
+        yaml-preprocessor:
+          condition: service_completed_successfully
         mock-server:
           condition: service_healthy
         catalog-gateway:
@@ -80,6 +82,20 @@ services:
         - MICROCKS_USER=admin
         - MICROCKS_PASS=admin
       stop_grace_period: 10s
+
+  yaml-preprocessor:
+    image: python:3.11-alpine
+    container_name: yaml-preprocessor
+    volumes:
+      - ./MOCKS-smart-city/apis:/apis
+      - ./MOCKS-smart-city/scripts:/scripts:ro
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        pip install --no-cache-dir pyyaml
+        python /scripts/fix_yaml.py /apis
 
   catalog-data:
     image: mongo:8.0.6

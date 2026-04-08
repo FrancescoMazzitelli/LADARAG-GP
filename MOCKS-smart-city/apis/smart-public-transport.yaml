@@ -186,8 +186,7 @@ paths:
               examples:
                 example_list:
                   value:
-                  - &id001
-                    id: 1
+                  - id: 1
                     zoneId: Z-CENTRO
                     routeId: Linea 1
                     vehicleType: bus
@@ -196,8 +195,7 @@ paths:
                     capacity: 75
                     status: in-service
                     lastUpdated: '2025-09-25T10:05:00Z'
-                  - &id005
-                    id: 2
+                  - id: 2
                     zoneId: Z-NORD
                     routeId: Linea 3
                     vehicleType: bus
@@ -206,8 +204,7 @@ paths:
                     capacity: 75
                     status: delayed
                     lastUpdated: '2025-09-25T10:02:00Z'
-                  - &id006
-                    id: 3
+                  - id: 3
                     zoneId: Z-SUD
                     routeId: Linea 16
                     vehicleType: bus
@@ -216,8 +213,7 @@ paths:
                     capacity: 75
                     status: out-of-service
                     lastUpdated: '2025-09-25T06:00:00Z'
-                  - &id004
-                    id: 4
+                  - id: 4
                     zoneId: Z-EST
                     routeId: Linea 7
                     vehicleType: bus
@@ -227,8 +223,7 @@ paths:
                     capacity: 75
                     status: in-service
                     lastUpdated: '2025-09-25T10:10:00Z'
-                  - &id002
-                    id: 5
+                  - id: 5
                     zoneId: Z-CENTRO
                     routeId: Tram 1
                     vehicleType: tram
@@ -237,8 +232,7 @@ paths:
                     capacity: 120
                     status: in-service
                     lastUpdated: '2025-09-25T10:08:00Z'
-                  - &id008
-                    id: 6
+                  - id: 6
                     zoneId: Z-NORD
                     routeId: Linea 5
                     vehicleType: bus
@@ -247,8 +241,7 @@ paths:
                     capacity: 75
                     status: end-of-line
                     lastUpdated: '2025-09-25T09:50:00Z'
-                  - &id007
-                    id: 7
+                  - id: 7
                     zoneId: Z-SUD
                     routeId: Linea 2
                     vehicleType: bus
@@ -257,8 +250,7 @@ paths:
                     capacity: 75
                     status: maintenance
                     lastUpdated: '2025-09-25T07:00:00Z'
-                  - &id003
-                    id: 8
+                  - id: 8
                     zoneId: Z-CENTRO
                     routeId: Linea 1
                     vehicleType: bus
@@ -269,51 +261,253 @@ paths:
                     lastUpdated: '2025-09-25T11:30:00Z'
                 by_zone_centro:
                   value:
-                  - *id001
-                  - *id002
-                  - *id003
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    routeId: Linea 1
+                    vehicleType: bus
+                    currentLocation: Stazione FS Centrale, Piazzale Colonna, Benevento
+                    occupancy: 38
+                    capacity: 75
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:05:00Z'
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    routeId: Tram 1
+                    vehicleType: tram
+                    currentLocation: Piazza Santa Sofia, Benevento
+                    occupancy: 44
+                    capacity: 120
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:08:00Z'
+                  - id: 8
+                    zoneId: Z-CENTRO
+                    routeId: Linea 1
+                    vehicleType: bus
+                    currentLocation: Corso Garibaldi - Piazza Risorgimento, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: suspended
+                    lastUpdated: '2025-09-25T11:30:00Z'
                 in-service:
                   value:
-                  - *id001
-                  - *id004
-                  - *id002
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    routeId: Linea 1
+                    vehicleType: bus
+                    currentLocation: Stazione FS Centrale, Piazzale Colonna, Benevento
+                    occupancy: 38
+                    capacity: 75
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:05:00Z'
+                  - id: 4
+                    zoneId: Z-EST
+                    routeId: Linea 7
+                    vehicleType: bus
+                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari,
+                      Benevento
+                    occupancy: 61
+                    capacity: 75
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:10:00Z'
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    routeId: Tram 1
+                    vehicleType: tram
+                    currentLocation: Piazza Santa Sofia, Benevento
+                    occupancy: 44
+                    capacity: 120
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:08:00Z'
                 delayed:
                   value:
-                  - *id005
+                  - id: 2
+                    zoneId: Z-NORD
+                    routeId: Linea 3
+                    vehicleType: bus
+                    currentLocation: Viale Mellusi (Fermata Ospedale), Benevento
+                    occupancy: 52
+                    capacity: 75
+                    status: delayed
+                    lastUpdated: '2025-09-25T10:02:00Z'
                 suspended:
                   value:
-                  - *id003
+                  - id: 8
+                    zoneId: Z-CENTRO
+                    routeId: Linea 1
+                    vehicleType: bus
+                    currentLocation: Corso Garibaldi - Piazza Risorgimento, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: suspended
+                    lastUpdated: '2025-09-25T11:30:00Z'
                 out-of-service:
                   value:
-                  - *id006
+                  - id: 3
+                    zoneId: Z-SUD
+                    routeId: Linea 16
+                    vehicleType: bus
+                    currentLocation: Deposito Trotta Bus, Via Santa Colomba, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: out-of-service
+                    lastUpdated: '2025-09-25T06:00:00Z'
                 maintenance:
                   value:
-                  - *id007
+                  - id: 7
+                    zoneId: Z-SUD
+                    routeId: Linea 2
+                    vehicleType: bus
+                    currentLocation: Officine Trotta Bus, Via Santa Colomba, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: maintenance
+                    lastUpdated: '2025-09-25T07:00:00Z'
                 end-of-line:
                   value:
-                  - *id008
+                  - id: 6
+                    zoneId: Z-NORD
+                    routeId: Linea 5
+                    vehicleType: bus
+                    currentLocation: Via Meomartini (Capolinea), Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: end-of-line
+                    lastUpdated: '2025-09-25T09:50:00Z'
                 bus:
                   value:
-                  - *id001
-                  - *id005
-                  - *id006
-                  - *id004
-                  - *id008
-                  - *id007
-                  - *id003
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    routeId: Linea 1
+                    vehicleType: bus
+                    currentLocation: Stazione FS Centrale, Piazzale Colonna, Benevento
+                    occupancy: 38
+                    capacity: 75
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:05:00Z'
+                  - id: 2
+                    zoneId: Z-NORD
+                    routeId: Linea 3
+                    vehicleType: bus
+                    currentLocation: Viale Mellusi (Fermata Ospedale), Benevento
+                    occupancy: 52
+                    capacity: 75
+                    status: delayed
+                    lastUpdated: '2025-09-25T10:02:00Z'
+                  - id: 3
+                    zoneId: Z-SUD
+                    routeId: Linea 16
+                    vehicleType: bus
+                    currentLocation: Deposito Trotta Bus, Via Santa Colomba, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: out-of-service
+                    lastUpdated: '2025-09-25T06:00:00Z'
+                  - id: 4
+                    zoneId: Z-EST
+                    routeId: Linea 7
+                    vehicleType: bus
+                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari,
+                      Benevento
+                    occupancy: 61
+                    capacity: 75
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:10:00Z'
+                  - id: 6
+                    zoneId: Z-NORD
+                    routeId: Linea 5
+                    vehicleType: bus
+                    currentLocation: Via Meomartini (Capolinea), Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: end-of-line
+                    lastUpdated: '2025-09-25T09:50:00Z'
+                  - id: 7
+                    zoneId: Z-SUD
+                    routeId: Linea 2
+                    vehicleType: bus
+                    currentLocation: Officine Trotta Bus, Via Santa Colomba, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: maintenance
+                    lastUpdated: '2025-09-25T07:00:00Z'
+                  - id: 8
+                    zoneId: Z-CENTRO
+                    routeId: Linea 1
+                    vehicleType: bus
+                    currentLocation: Corso Garibaldi - Piazza Risorgimento, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: suspended
+                    lastUpdated: '2025-09-25T11:30:00Z'
                 tram:
                   value:
-                  - *id002
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    routeId: Tram 1
+                    vehicleType: tram
+                    currentLocation: Piazza Santa Sofia, Benevento
+                    occupancy: 44
+                    capacity: 120
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:08:00Z'
                 by_status_delayed:
                   value:
-                  - *id005
+                  - id: 2
+                    zoneId: Z-NORD
+                    routeId: Linea 3
+                    vehicleType: bus
+                    currentLocation: Viale Mellusi (Fermata Ospedale), Benevento
+                    occupancy: 52
+                    capacity: 75
+                    status: delayed
+                    lastUpdated: '2025-09-25T10:02:00Z'
                 multiple_zones:
                   value:
-                  - *id001
-                  - *id005
-                  - *id002
-                  - *id008
-                  - *id003
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    routeId: Linea 1
+                    vehicleType: bus
+                    currentLocation: Stazione FS Centrale, Piazzale Colonna, Benevento
+                    occupancy: 38
+                    capacity: 75
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:05:00Z'
+                  - id: 2
+                    zoneId: Z-NORD
+                    routeId: Linea 3
+                    vehicleType: bus
+                    currentLocation: Viale Mellusi (Fermata Ospedale), Benevento
+                    occupancy: 52
+                    capacity: 75
+                    status: delayed
+                    lastUpdated: '2025-09-25T10:02:00Z'
+                  - id: 5
+                    zoneId: Z-CENTRO
+                    routeId: Tram 1
+                    vehicleType: tram
+                    currentLocation: Piazza Santa Sofia, Benevento
+                    occupancy: 44
+                    capacity: 120
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:08:00Z'
+                  - id: 6
+                    zoneId: Z-NORD
+                    routeId: Linea 5
+                    vehicleType: bus
+                    currentLocation: Via Meomartini (Capolinea), Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: end-of-line
+                    lastUpdated: '2025-09-25T09:50:00Z'
+                  - id: 8
+                    zoneId: Z-CENTRO
+                    routeId: Linea 1
+                    vehicleType: bus
+                    currentLocation: Corso Garibaldi - Piazza Risorgimento, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: suspended
+                    lastUpdated: '2025-09-25T11:30:00Z'
     post:
       description: Register a new public transport vehicle in the city transit system.
       summary: Register new vehicle

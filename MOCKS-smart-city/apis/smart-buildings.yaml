@@ -178,8 +178,7 @@ paths:
               examples:
                 example_list:
                   value:
-                  - &id003
-                    id: 1
+                  - id: 1
                     zoneId: Z-SUD
                     name: Ospedale San Pio
                     address: Via dell'Esperanto 1, Benevento
@@ -190,8 +189,7 @@ paths:
                     energyUsage: 5500.0
                     co2Emissions: 220.0
                     status: operational
-                  - &id001
-                    id: 2
+                  - id: 2
                     zoneId: Z-CENTRO
                     name: Biblioteca Comunale - Palazzo Paolo V
                     address: Corso Garibaldi 147, Benevento
@@ -202,8 +200,7 @@ paths:
                     energyUsage: 820.0
                     co2Emissions: 32.8
                     status: operational
-                  - &id004
-                    id: 3
+                  - id: 3
                     zoneId: Z-NORD
                     name: Istituto Scolastico G. Rummo
                     address: Via G. Rummo 1, Benevento
@@ -214,8 +211,7 @@ paths:
                     energyUsage: 1100.0
                     co2Emissions: 44.0
                     status: operational
-                  - &id007
-                    id: 4
+                  - id: 4
                     zoneId: Z-NORD
                     name: Palazzo Municipale Distaccato
                     address: Via Mustilli 14, Benevento
@@ -226,8 +222,7 @@ paths:
                     energyUsage: 0.0
                     co2Emissions: 0.0
                     status: evacuated
-                  - &id005
-                    id: 5
+                  - id: 5
                     zoneId: Z-EST
                     name: Centro Commerciale Il Quadrifoglio
                     address: Viale degli Atlantici, Benevento
@@ -238,8 +233,7 @@ paths:
                     energyUsage: 3200.0
                     co2Emissions: 128.0
                     status: operational
-                  - &id002
-                    id: 6
+                  - id: 6
                     zoneId: Z-CENTRO
                     name: Prefettura di Benevento
                     address: Via Perasso 1, Benevento
@@ -250,8 +244,7 @@ paths:
                     energyUsage: 1400.0
                     co2Emissions: 56.0
                     status: operational
-                  - &id008
-                    id: 7
+                  - id: 7
                     zoneId: Z-SUD
                     name: Palazzetto dello Sport
                     address: Viale dei Rettori, Benevento
@@ -262,8 +255,7 @@ paths:
                     energyUsage: 200.0
                     co2Emissions: 8.0
                     status: maintenance
-                  - &id006
-                    id: 8
+                  - id: 8
                     zoneId: Z-NORD
                     name: Condominio Residenziale Le Palme
                     address: Via Meomartini 12, Benevento
@@ -274,8 +266,7 @@ paths:
                     energyUsage: 600.0
                     co2Emissions: 24.0
                     status: operational
-                  - &id009
-                    id: 9
+                  - id: 9
                     zoneId: Z-EST
                     name: Capannone Industriale Zona ASI
                     address: Contrada Olivola, Benevento
@@ -288,54 +279,274 @@ paths:
                     status: closed
                 by_zone_centro:
                   value:
-                  - *id001
-                  - *id002
+                  - id: 2
+                    zoneId: Z-CENTRO
+                    name: Biblioteca Comunale - Palazzo Paolo V
+                    address: Corso Garibaldi 147, Benevento
+                    buildingType: public
+                    floors: 3
+                    occupancy: 120
+                    maxCapacity: 300
+                    energyUsage: 820.0
+                    co2Emissions: 32.8
+                    status: operational
+                  - id: 6
+                    zoneId: Z-CENTRO
+                    name: Prefettura di Benevento
+                    address: Via Perasso 1, Benevento
+                    buildingType: office
+                    floors: 5
+                    occupancy: 180
+                    maxCapacity: 250
+                    energyUsage: 1400.0
+                    co2Emissions: 56.0
+                    status: operational
                 operational:
                   value:
-                  - *id003
-                  - *id001
-                  - *id004
-                  - *id005
-                  - *id002
-                  - *id006
+                  - id: 1
+                    zoneId: Z-SUD
+                    name: Ospedale San Pio
+                    address: Via dell'Esperanto 1, Benevento
+                    buildingType: healthcare
+                    floors: 6
+                    occupancy: 850
+                    maxCapacity: 1500
+                    energyUsage: 5500.0
+                    co2Emissions: 220.0
+                    status: operational
+                  - id: 2
+                    zoneId: Z-CENTRO
+                    name: Biblioteca Comunale - Palazzo Paolo V
+                    address: Corso Garibaldi 147, Benevento
+                    buildingType: public
+                    floors: 3
+                    occupancy: 120
+                    maxCapacity: 300
+                    energyUsage: 820.0
+                    co2Emissions: 32.8
+                    status: operational
+                  - id: 3
+                    zoneId: Z-NORD
+                    name: Istituto Scolastico G. Rummo
+                    address: Via G. Rummo 1, Benevento
+                    buildingType: education
+                    floors: 4
+                    occupancy: 480
+                    maxCapacity: 600
+                    energyUsage: 1100.0
+                    co2Emissions: 44.0
+                    status: operational
+                  - id: 5
+                    zoneId: Z-EST
+                    name: Centro Commerciale Il Quadrifoglio
+                    address: Viale degli Atlantici, Benevento
+                    buildingType: commercial
+                    floors: 2
+                    occupancy: 320
+                    maxCapacity: 1000
+                    energyUsage: 3200.0
+                    co2Emissions: 128.0
+                    status: operational
+                  - id: 6
+                    zoneId: Z-CENTRO
+                    name: Prefettura di Benevento
+                    address: Via Perasso 1, Benevento
+                    buildingType: office
+                    floors: 5
+                    occupancy: 180
+                    maxCapacity: 250
+                    energyUsage: 1400.0
+                    co2Emissions: 56.0
+                    status: operational
+                  - id: 8
+                    zoneId: Z-NORD
+                    name: Condominio Residenziale Le Palme
+                    address: Via Meomartini 12, Benevento
+                    buildingType: residential
+                    floors: 8
+                    occupancy: 42
+                    maxCapacity: 60
+                    energyUsage: 600.0
+                    co2Emissions: 24.0
+                    status: operational
                 evacuated:
                   value:
-                  - *id007
+                  - id: 4
+                    zoneId: Z-NORD
+                    name: Palazzo Municipale Distaccato
+                    address: Via Mustilli 14, Benevento
+                    buildingType: office
+                    floors: 4
+                    occupancy: 0
+                    maxCapacity: 200
+                    energyUsage: 0.0
+                    co2Emissions: 0.0
+                    status: evacuated
                 maintenance:
                   value:
-                  - *id008
+                  - id: 7
+                    zoneId: Z-SUD
+                    name: Palazzetto dello Sport
+                    address: Viale dei Rettori, Benevento
+                    buildingType: public
+                    floors: 1
+                    occupancy: 0
+                    maxCapacity: 800
+                    energyUsage: 200.0
+                    co2Emissions: 8.0
+                    status: maintenance
                 closed:
                   value:
-                  - *id009
+                  - id: 9
+                    zoneId: Z-EST
+                    name: Capannone Industriale Zona ASI
+                    address: Contrada Olivola, Benevento
+                    buildingType: industrial
+                    floors: 1
+                    occupancy: 0
+                    maxCapacity: 50
+                    energyUsage: 0.0
+                    co2Emissions: 0.0
+                    status: closed
                 healthcare:
                   value:
-                  - *id003
+                  - id: 1
+                    zoneId: Z-SUD
+                    name: Ospedale San Pio
+                    address: Via dell'Esperanto 1, Benevento
+                    buildingType: healthcare
+                    floors: 6
+                    occupancy: 850
+                    maxCapacity: 1500
+                    energyUsage: 5500.0
+                    co2Emissions: 220.0
+                    status: operational
                 education:
                   value:
-                  - *id004
+                  - id: 3
+                    zoneId: Z-NORD
+                    name: Istituto Scolastico G. Rummo
+                    address: Via G. Rummo 1, Benevento
+                    buildingType: education
+                    floors: 4
+                    occupancy: 480
+                    maxCapacity: 600
+                    energyUsage: 1100.0
+                    co2Emissions: 44.0
+                    status: operational
                 office:
                   value:
-                  - *id007
-                  - *id002
+                  - id: 4
+                    zoneId: Z-NORD
+                    name: Palazzo Municipale Distaccato
+                    address: Via Mustilli 14, Benevento
+                    buildingType: office
+                    floors: 4
+                    occupancy: 0
+                    maxCapacity: 200
+                    energyUsage: 0.0
+                    co2Emissions: 0.0
+                    status: evacuated
+                  - id: 6
+                    zoneId: Z-CENTRO
+                    name: Prefettura di Benevento
+                    address: Via Perasso 1, Benevento
+                    buildingType: office
+                    floors: 5
+                    occupancy: 180
+                    maxCapacity: 250
+                    energyUsage: 1400.0
+                    co2Emissions: 56.0
+                    status: operational
                 residential:
                   value:
-                  - *id006
+                  - id: 8
+                    zoneId: Z-NORD
+                    name: Condominio Residenziale Le Palme
+                    address: Via Meomartini 12, Benevento
+                    buildingType: residential
+                    floors: 8
+                    occupancy: 42
+                    maxCapacity: 60
+                    energyUsage: 600.0
+                    co2Emissions: 24.0
+                    status: operational
                 commercial:
                   value:
-                  - *id005
+                  - id: 5
+                    zoneId: Z-EST
+                    name: Centro Commerciale Il Quadrifoglio
+                    address: Viale degli Atlantici, Benevento
+                    buildingType: commercial
+                    floors: 2
+                    occupancy: 320
+                    maxCapacity: 1000
+                    energyUsage: 3200.0
+                    co2Emissions: 128.0
+                    status: operational
                 public:
                   value:
-                  - *id001
-                  - *id008
+                  - id: 2
+                    zoneId: Z-CENTRO
+                    name: Biblioteca Comunale - Palazzo Paolo V
+                    address: Corso Garibaldi 147, Benevento
+                    buildingType: public
+                    floors: 3
+                    occupancy: 120
+                    maxCapacity: 300
+                    energyUsage: 820.0
+                    co2Emissions: 32.8
+                    status: operational
+                  - id: 7
+                    zoneId: Z-SUD
+                    name: Palazzetto dello Sport
+                    address: Viale dei Rettori, Benevento
+                    buildingType: public
+                    floors: 1
+                    occupancy: 0
+                    maxCapacity: 800
+                    energyUsage: 200.0
+                    co2Emissions: 8.0
+                    status: maintenance
                 industrial:
                   value:
-                  - *id009
+                  - id: 9
+                    zoneId: Z-EST
+                    name: Capannone Industriale Zona ASI
+                    address: Contrada Olivola, Benevento
+                    buildingType: industrial
+                    floors: 1
+                    occupancy: 0
+                    maxCapacity: 50
+                    energyUsage: 0.0
+                    co2Emissions: 0.0
+                    status: closed
                 by_status_evacuated:
                   value:
-                  - *id007
+                  - id: 4
+                    zoneId: Z-NORD
+                    name: Palazzo Municipale Distaccato
+                    address: Via Mustilli 14, Benevento
+                    buildingType: office
+                    floors: 4
+                    occupancy: 0
+                    maxCapacity: 200
+                    energyUsage: 0.0
+                    co2Emissions: 0.0
+                    status: evacuated
                 by_type_healthcare:
                   value:
-                  - *id003
+                  - id: 1
+                    zoneId: Z-SUD
+                    name: Ospedale San Pio
+                    address: Via dell'Esperanto 1, Benevento
+                    buildingType: healthcare
+                    floors: 6
+                    occupancy: 850
+                    maxCapacity: 1500
+                    energyUsage: 5500.0
+                    co2Emissions: 220.0
+                    status: operational
     post:
       description: Register a new building in the city infrastructure system.
       summary: Register new building

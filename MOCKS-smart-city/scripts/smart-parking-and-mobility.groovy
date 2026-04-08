@@ -2,6 +2,8 @@ import groovy.json.JsonOutput
 import org.yaml.snakeyaml.Yaml
 import java.net.URL
 import java.net.HttpURLConnection
+import org.yaml.snakeyaml.LoaderOptions
+import org.yaml.snakeyaml.constructor.SafeConstructor
 
 // ── Service constants ──────────────────────────────────────────────────────
 def SERVICE_NAME   = "smart-parking-api-mock"
@@ -39,7 +41,10 @@ def withRetry = { int maxAttempts, long baseDelayMs, Closure action ->
 def openApiUrl  = "http://${MICROCKS_HOST}:${MICROCKS_INTERNAL_PORT}/api/resources/${OPENAPI_FILE}"
 def yamlContent = new URL(openApiUrl).text
 
-def yaml       = new Yaml()
+def loaderOptions = new LoaderOptions()
+loaderOptions.setMaxAliasesForCollections(200)   // alza limite alias (default ~50)
+
+def yaml       = new Yaml(new SafeConstructor(loaderOptions))
 def swaggerMap = yaml.load(yamlContent)
 
 def description = swaggerMap.info?.description ?: "No description"

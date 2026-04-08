@@ -1,110 +1,66 @@
-2026-04-07 15:35:17,409 - DEBUG - {"message": "Starting topology monitoring", "topologyId": {"$oid": "69d524359223363a3a4c6f72"}}
-2026-04-07 15:35:17,410 - DEBUG - {"message": "Topology description changed", "topologyId": {"$oid": "69d524359223363a3a4c6f72"}, "previousDescription": "<TopologyDescription id: 69d524359223363a3a4c6f72, topology_type: Unknown, servers: []>", "newDescription": "<TopologyDescription id: 69d524359223363a3a4c6f72, topology_type: Unknown, servers: [<ServerDescription ('catalog-data', 27017) server_type: Unknown, rtt: None>]>"}
-2026-04-07 15:35:17,410 - DEBUG - {"message": "Starting server monitoring", "topologyId": {"$oid": "69d524359223363a3a4c6f72"}, "serverHost": "catalog-data", "serverPort": 27017}
-2026-04-07 15:35:17,412 - DEBUG - {"message": "Connection pool created", "clientId": {"$oid": "69d524359223363a3a4c6f72"}, "serverHost": "catalog-data", "serverPort": 27017}
-2026-04-07 15:35:17,435 - DEBUG - {"message": "Server heartbeat started", "topologyId": {"$oid": "69d524359223363a3a4c6f72"}, "driverConnectionId": 1, "serverHost": "catalog-data", "serverPort": 27017, "awaited": false}
-2026-04-07 15:35:17,440 - DEBUG - {"message": "Server heartbeat succeeded", "topologyId": {"$oid": "69d524359223363a3a4c6f72"}, "driverConnectionId": 1, "serverConnectionId": 5, "serverHost": "catalog-data", "serverPort": 27017, "awaited": false, "durationMS": 2.0508520001385477, "reply": "{\"helloOk\": true, \"ismaster\": true, \"topologyVersion\": {\"processId\": {\"$oid\": \"69d52425bd0f16106cc2674f\"}}, \"maxBsonObjectSize\": 16777216, \"maxMessageSizeBytes\": 48000000, \"maxWriteBatchSize\": 100000, \"localTime\": {\"$date\": \"2026-04-07T15:35:17.438Z\"}, \"logicalSessionTimeoutMinutes\": 30, \"connectionId\": 5, \"maxWireVersion\": 25, \"ok\": 1.0}"}
-2026-04-07 15:35:17,441 - DEBUG - {"message": "Connection pool ready", "clientId": {"$oid": "69d524359223363a3a4c6f72"}, "serverHost": "catalog-data", "serverPort": 27017}
-2026-04-07 15:35:17,442 - DEBUG - {"message": "Topology description changed", "topologyId": {"$oid": "69d524359223363a3a4c6f72"}, "previousDescription": "<TopologyDescription id: 69d524359223363a3a4c6f72, topology_type: Unknown, servers: [<ServerDescription ('catalog-data', 27017) server_type: Unknown, rtt: None>]>", "newDescription": "<TopologyDescription id: 69d524359223363a3a4c6f72, topology_type: Single, servers: [<ServerDescription ('catalog-data', 27017) server_type: Standalone, rtt: 0.0020508520001385477>]>"}
-2026-04-07 15:35:17,448 - DEBUG - {"message": "Server heartbeat started", "topologyId": {"$oid": "69d524359223363a3a4c6f72"}, "driverConnectionId": 1, "serverConnectionId": 5, "serverHost": "catalog-data", "serverPort": 27017, "awaited": true}
-2026-04-07 15:35:17,704 - DEBUG - connect_tcp.started host='catalog-vector' port=6333 local_address=None timeout=5.0 socket_options=None
-2026-04-07 15:35:17,707 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7f29d00a3cd0>
-2026-04-07 15:35:17,708 - DEBUG - send_request_headers.started request=<Request [b'GET']>
-2026-04-07 15:35:17,709 - DEBUG - send_request_headers.complete
-2026-04-07 15:35:17,710 - DEBUG - send_request_body.started request=<Request [b'GET']>
-2026-04-07 15:35:17,711 - DEBUG - send_request_body.complete
-2026-04-07 15:35:17,712 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
-2026-04-07 15:35:17,714 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'transfer-encoding', b'chunked'), (b'content-type', b'application/json'), (b'vary', b'accept-encoding, Origin, Access-Control-Request-Method, Access-Control-Request-Headers'), (b'content-encoding', b'gzip'), (b'date', b'Tue, 07 Apr 2026 15:35:17 GMT')])
-2026-04-07 15:35:17,716 - INFO - HTTP Request: GET http://catalog-vector:6333 "HTTP/1.1 200 OK"
-2026-04-07 15:35:17,717 - DEBUG - receive_response_body.started request=<Request [b'GET']>
-2026-04-07 15:35:17,718 - DEBUG - receive_response_body.complete
-2026-04-07 15:35:17,719 - DEBUG - response_closed.started
-2026-04-07 15:35:17,720 - DEBUG - response_closed.complete
-2026-04-07 15:35:17,720 - DEBUG - close.started
-2026-04-07 15:35:17,721 - DEBUG - close.complete
-2026-04-07 15:35:17,734 - INFO - 🛠️ Creating Qdrant collection...
-2026-04-07 15:35:17,735 - DEBUG - connect_tcp.started host='catalog-vector' port=6333 local_address=None timeout=5.0 socket_options=None
-2026-04-07 15:35:17,737 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7f29d00ede40>
-2026-04-07 15:35:17,738 - DEBUG - send_request_headers.started request=<Request [b'GET']>
-2026-04-07 15:35:17,739 - DEBUG - send_request_headers.complete
-2026-04-07 15:35:17,741 - DEBUG - send_request_body.started request=<Request [b'GET']>
-2026-04-07 15:35:17,741 - DEBUG - send_request_body.complete
-2026-04-07 15:35:17,742 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
-2026-04-07 15:35:17,743 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'transfer-encoding', b'chunked'), (b'content-encoding', b'gzip'), (b'content-type', b'application/json'), (b'vary', b'accept-encoding, Origin, Access-Control-Request-Method, Access-Control-Request-Headers'), (b'date', b'Tue, 07 Apr 2026 15:35:17 GMT')])
-2026-04-07 15:35:17,744 - INFO - HTTP Request: GET http://catalog-vector:6333/collections "HTTP/1.1 200 OK"
-2026-04-07 15:35:17,745 - DEBUG - receive_response_body.started request=<Request [b'GET']>
-2026-04-07 15:35:17,746 - DEBUG - receive_response_body.complete
-2026-04-07 15:35:17,746 - DEBUG - response_closed.started
-2026-04-07 15:35:17,747 - DEBUG - response_closed.complete
-2026-04-07 15:35:17,750 - DEBUG - send_request_headers.started request=<Request [b'PUT']>
-2026-04-07 15:35:17,752 - DEBUG - send_request_headers.complete
-2026-04-07 15:35:17,752 - DEBUG - send_request_body.started request=<Request [b'PUT']>
-2026-04-07 15:35:17,753 - DEBUG - send_request_body.complete
-2026-04-07 15:35:17,753 - DEBUG - receive_response_headers.started request=<Request [b'PUT']>
-2026-04-07 15:35:17,870 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'transfer-encoding', b'chunked'), (b'content-encoding', b'gzip'), (b'content-type', b'application/json'), (b'vary', b'accept-encoding, Origin, Access-Control-Request-Method, Access-Control-Request-Headers'), (b'date', b'Tue, 07 Apr 2026 15:35:17 GMT')])
-2026-04-07 15:35:17,871 - INFO - HTTP Request: PUT http://catalog-vector:6333/collections/services "HTTP/1.1 200 OK"
-2026-04-07 15:35:17,872 - DEBUG - receive_response_body.started request=<Request [b'PUT']>
-2026-04-07 15:35:17,873 - DEBUG - receive_response_body.complete
-2026-04-07 15:35:17,873 - DEBUG - response_closed.started
-2026-04-07 15:35:17,874 - DEBUG - response_closed.complete
-2026-04-07 15:35:17,877 - INFO - Collection 'services' created
-2026-04-07 15:35:17,879 - DEBUG - send_request_headers.started request=<Request [b'PUT']>
-2026-04-07 15:35:17,880 - DEBUG - send_request_headers.complete
-2026-04-07 15:35:17,881 - DEBUG - send_request_body.started request=<Request [b'PUT']>
-2026-04-07 15:35:17,883 - DEBUG - send_request_body.complete
-2026-04-07 15:35:17,883 - DEBUG - receive_response_headers.started request=<Request [b'PUT']>
-2026-04-07 15:35:17,997 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'transfer-encoding', b'chunked'), (b'content-encoding', b'gzip'), (b'content-type', b'application/json'), (b'vary', b'accept-encoding, Origin, Access-Control-Request-Method, Access-Control-Request-Headers'), (b'date', b'Tue, 07 Apr 2026 15:35:17 GMT')])
-2026-04-07 15:35:18,003 - INFO - HTTP Request: PUT http://catalog-vector:6333/collections/services_index "HTTP/1.1 200 OK"
-2026-04-07 15:35:18,004 - DEBUG - receive_response_body.started request=<Request [b'PUT']>
-2026-04-07 15:35:18,006 - DEBUG - receive_response_body.complete
-2026-04-07 15:35:18,007 - DEBUG - response_closed.started
-2026-04-07 15:35:18,007 - DEBUG - response_closed.complete
-2026-04-07 15:35:18,008 - INFO - Collection 'services_index' created
-2026-04-07 15:35:18,009 - INFO - 📦 Loading embedding model...
-2026-04-07 15:35:18,010 - INFO - Loading models...
-2026-04-07 15:35:18,012 - INFO - Load pretrained SentenceTransformer: Qwen/Qwen3-Embedding-0.6B
-2026-04-07 15:35:18,017 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
-2026-04-07 15:35:18,267 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/modules.json HTTP/1.1" 307 0
-2026-04-07 15:35:18,301 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/modules.json HTTP/1.1" 200 0
-2026-04-07 15:35:18,305 - DEBUG - Attempting to acquire lock 139817560718880 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/952a9b81c0bfd99800fabf352f69c7ccd46c5e43.lock
-2026-04-07 15:35:18,305 - DEBUG - Lock 139817560718880 acquired on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/952a9b81c0bfd99800fabf352f69c7ccd46c5e43.lock
-2026-04-07 15:35:18,331 - DEBUG - https://huggingface.co:443 "GET /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/modules.json HTTP/1.1" 200 349
-2026-04-07 15:35:18,335 - DEBUG - Attempting to release lock 139817560718880 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/952a9b81c0bfd99800fabf352f69c7ccd46c5e43.lock
-2026-04-07 15:35:18,335 - DEBUG - Lock 139817560718880 released on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/952a9b81c0bfd99800fabf352f69c7ccd46c5e43.lock
-2026-04-07 15:35:18,480 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/config_sentence_transformers.json HTTP/1.1" 307 0
-2026-04-07 15:35:18,507 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/config_sentence_transformers.json HTTP/1.1" 200 0
-2026-04-07 15:35:18,511 - DEBUG - Attempting to acquire lock 139817560717488 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/76aef3ade63553ebb698fe3c2a3264040ed093f8.lock
-2026-04-07 15:35:18,513 - DEBUG - Lock 139817560717488 acquired on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/76aef3ade63553ebb698fe3c2a3264040ed093f8.lock
-2026-04-07 15:35:18,537 - DEBUG - https://huggingface.co:443 "GET /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/config_sentence_transformers.json HTTP/1.1" 200 215
-2026-04-07 15:35:18,540 - DEBUG - Attempting to release lock 139817560717488 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/76aef3ade63553ebb698fe3c2a3264040ed093f8.lock
-2026-04-07 15:35:18,541 - DEBUG - Lock 139817560717488 released on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/76aef3ade63553ebb698fe3c2a3264040ed093f8.lock
-2026-04-07 15:35:18,684 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/config_sentence_transformers.json HTTP/1.1" 307 0
-2026-04-07 15:35:18,709 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/config_sentence_transformers.json HTTP/1.1" 200 0
-2026-04-07 15:35:18,858 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/README.md HTTP/1.1" 307 0
-2026-04-07 15:35:18,884 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/README.md HTTP/1.1" 200 0
-2026-04-07 15:35:18,886 - DEBUG - Attempting to acquire lock 139817560716624 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/23858040858d99d4941507b673b5c088bf7fc867.lock
-2026-04-07 15:35:18,888 - DEBUG - Lock 139817560716624 acquired on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/23858040858d99d4941507b673b5c088bf7fc867.lock
-2026-04-07 15:35:18,911 - DEBUG - https://huggingface.co:443 "GET /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/README.md HTTP/1.1" 200 None
-2026-04-07 15:35:18,915 - DEBUG - Attempting to release lock 139817560716624 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/23858040858d99d4941507b673b5c088bf7fc867.lock
-2026-04-07 15:35:18,917 - DEBUG - Lock 139817560716624 released on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/23858040858d99d4941507b673b5c088bf7fc867.lock
-2026-04-07 15:35:19,061 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/modules.json HTTP/1.1" 307 0
-2026-04-07 15:35:19,086 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/modules.json HTTP/1.1" 200 0
-2026-04-07 15:35:19,236 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/sentence_bert_config.json HTTP/1.1" 404 0
-2026-04-07 15:35:19,382 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/sentence_roberta_config.json HTTP/1.1" 404 0
-2026-04-07 15:35:19,555 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/sentence_distilbert_config.json HTTP/1.1" 404 0
-2026-04-07 15:35:19,700 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/sentence_camembert_config.json HTTP/1.1" 404 0
-2026-04-07 15:35:19,845 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/sentence_albert_config.json HTTP/1.1" 404 0
-2026-04-07 15:35:20,000 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/sentence_xlm-roberta_config.json HTTP/1.1" 404 0
-2026-04-07 15:35:20,149 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/sentence_xlnet_config.json HTTP/1.1" 404 0
-2026-04-07 15:35:20,294 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/adapter_config.json HTTP/1.1" 404 0
-2026-04-07 15:35:20,441 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/config.json HTTP/1.1" 307 0
-2026-04-07 15:35:20,463 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/config.json HTTP/1.1" 200 0
-2026-04-07 15:35:20,465 - DEBUG - Attempting to acquire lock 139817560715952 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/cef2749ee93607b8f9a58ec72f4f6bfaf874e71d.lock
-2026-04-07 15:35:20,466 - DEBUG - Lock 139817560715952 acquired on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/cef2749ee93607b8f9a58ec72f4f6bfaf874e71d.lock
-2026-04-07 15:35:20,498 - DEBUG - https://huggingface.co:443 "GET /api/resolve-cache/models/Qwen/Qwen3-Embedding-0.6B/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/config.json HTTP/1.1" 200 727
-2026-04-07 15:35:20,500 - DEBUG - Attempting to release lock 139817560715952 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/cef2749ee93607b8f9a58ec72f4f6bfaf874e71d.lock
-2026-04-07 15:35:20,501 - DEBUG - Lock 139817560715952 released on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/cef2749ee93607b8f9a58ec72f4f6bfaf874e71d.lock
-2026-04-07 15:35:20,753 - DEBUG - https://huggingface.co:443 "HEAD /Qwen/Qwen3-Embedding-0.6B/resolve/main/model.safetensors HTTP/1.1" 302 0
-2026-04-07 15:35:20,758 - DEBUG - Attempting to acquire lock 139817467147600 on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/0437e45c94563b09e13cb7a64478fc406947a93cb34a7e05870fc8dcd48e23fd.lock
-2026-04-07 15:35:20,759 - DEBUG - Lock 139817467147600 acquired on /root/.cache/huggingface/hub/.locks/models--Qwen--Qwen3-Embedding-0.6B/0437e45c94563b09e13cb7a64478fc406947a93cb34a7e05870fc8dcd48e23fd.lock
-2026-04-07 15:35:20,936 - DEBUG - https://huggingface.co:443 "GET /api/models/Qwen/Qwen3-Embedding-0.6B/xet-read-token/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418 HTTP/1.1" 200 399
+2026-04-08 08:06:20,406 - DEBUG - {"message": "Starting topology monitoring", "topologyId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}}
+2026-04-08 08:06:20,408 - DEBUG - {"message": "Topology description changed", "topologyId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}, "previousDescription": "<TopologyDescription id: 69d60c7ca2c4ae9b050a1e7f, topology_type: Unknown, servers: []>", "newDescription": "<TopologyDescription id: 69d60c7ca2c4ae9b050a1e7f, topology_type: Unknown, servers: [<ServerDescription ('catalog-data', 27017) server_type: Unknown, rtt: None>]>"}
+2026-04-08 08:06:20,409 - DEBUG - {"message": "Starting server monitoring", "topologyId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}, "serverHost": "catalog-data", "serverPort": 27017}
+2026-04-08 08:06:20,412 - DEBUG - {"message": "Connection pool created", "clientId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}, "serverHost": "catalog-data", "serverPort": 27017}
+2026-04-08 08:06:20,447 - DEBUG - {"message": "Server heartbeat started", "topologyId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}, "driverConnectionId": 1, "serverHost": "catalog-data", "serverPort": 27017, "awaited": false}
+2026-04-08 08:06:20,458 - DEBUG - {"message": "Server heartbeat succeeded", "topologyId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}, "driverConnectionId": 1, "serverConnectionId": 5, "serverHost": "catalog-data", "serverPort": 27017, "awaited": false, "durationMS": 1.9061510000000226, "reply": "{\"helloOk\": true, \"ismaster\": true, \"topologyVersion\": {\"processId\": {\"$oid\": \"69d60c5ce7d89dfa40e06ccc\"}}, \"maxBsonObjectSize\": 16777216, \"maxMessageSizeBytes\": 48000000, \"maxWriteBatchSize\": 100000, \"localTime\": {\"$date\": \"2026-04-08T08:06:20.456Z\"}, \"logicalSessionTimeoutMinutes\": 30, \"connectionId\": 5, \"maxWireVersion\": 25, \"ok\": 1.0}"}
+2026-04-08 08:06:20,460 - DEBUG - {"message": "Connection pool ready", "clientId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}, "serverHost": "catalog-data", "serverPort": 27017}
+2026-04-08 08:06:20,461 - DEBUG - {"message": "Topology description changed", "topologyId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}, "previousDescription": "<TopologyDescription id: 69d60c7ca2c4ae9b050a1e7f, topology_type: Unknown, servers: [<ServerDescription ('catalog-data', 27017) server_type: Unknown, rtt: None>]>", "newDescription": "<TopologyDescription id: 69d60c7ca2c4ae9b050a1e7f, topology_type: Single, servers: [<ServerDescription ('catalog-data', 27017) server_type: Standalone, rtt: 0.0019061510000000226>]>"}
+2026-04-08 08:06:20,466 - DEBUG - {"message": "Server heartbeat started", "topologyId": {"$oid": "69d60c7ca2c4ae9b050a1e7f"}, "driverConnectionId": 1, "serverConnectionId": 5, "serverHost": "catalog-data", "serverPort": 27017, "awaited": true}
+2026-04-08 08:06:20,780 - DEBUG - connect_tcp.started host='catalog-vector' port=6333 local_address=None timeout=5.0 socket_options=None
+2026-04-08 08:06:20,782 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7f14053e39a0>
+2026-04-08 08:06:20,783 - DEBUG - send_request_headers.started request=<Request [b'GET']>
+2026-04-08 08:06:20,785 - DEBUG - send_request_headers.complete
+2026-04-08 08:06:20,786 - DEBUG - send_request_body.started request=<Request [b'GET']>
+2026-04-08 08:06:20,787 - DEBUG - send_request_body.complete
+2026-04-08 08:06:20,788 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
+2026-04-08 08:06:20,793 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'transfer-encoding', b'chunked'), (b'content-encoding', b'gzip'), (b'content-type', b'application/json'), (b'vary', b'accept-encoding, Origin, Access-Control-Request-Method, Access-Control-Request-Headers'), (b'date', b'Wed, 08 Apr 2026 08:06:20 GMT')])
+2026-04-08 08:06:20,796 - INFO - HTTP Request: GET http://catalog-vector:6333 "HTTP/1.1 200 OK"
+2026-04-08 08:06:20,797 - DEBUG - receive_response_body.started request=<Request [b'GET']>
+2026-04-08 08:06:20,798 - DEBUG - receive_response_body.complete
+2026-04-08 08:06:20,799 - DEBUG - response_closed.started
+2026-04-08 08:06:20,800 - DEBUG - response_closed.complete
+2026-04-08 08:06:20,801 - DEBUG - close.started
+2026-04-08 08:06:20,802 - DEBUG - close.complete
+2026-04-08 08:06:20,813 - INFO - 🛠️ Creating Qdrant collection...
+2026-04-08 08:06:20,815 - DEBUG - connect_tcp.started host='catalog-vector' port=6333 local_address=None timeout=5.0 socket_options=None
+2026-04-08 08:06:20,817 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7f1405425b10>
+2026-04-08 08:06:20,818 - DEBUG - send_request_headers.started request=<Request [b'GET']>
+2026-04-08 08:06:20,819 - DEBUG - send_request_headers.complete
+2026-04-08 08:06:20,820 - DEBUG - send_request_body.started request=<Request [b'GET']>
+2026-04-08 08:06:20,821 - DEBUG - send_request_body.complete
+2026-04-08 08:06:20,821 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
+2026-04-08 08:06:20,823 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'transfer-encoding', b'chunked'), (b'content-encoding', b'gzip'), (b'vary', b'accept-encoding, Origin, Access-Control-Request-Method, Access-Control-Request-Headers'), (b'content-type', b'application/json'), (b'date', b'Wed, 08 Apr 2026 08:06:20 GMT')])
+2026-04-08 08:06:20,824 - INFO - HTTP Request: GET http://catalog-vector:6333/collections "HTTP/1.1 200 OK"
+2026-04-08 08:06:20,825 - DEBUG - receive_response_body.started request=<Request [b'GET']>
+2026-04-08 08:06:20,826 - DEBUG - receive_response_body.complete
+2026-04-08 08:06:20,827 - DEBUG - response_closed.started
+2026-04-08 08:06:20,828 - DEBUG - response_closed.complete
+2026-04-08 08:06:20,834 - DEBUG - send_request_headers.started request=<Request [b'PUT']>
+2026-04-08 08:06:20,835 - DEBUG - send_request_headers.complete
+2026-04-08 08:06:20,836 - DEBUG - send_request_body.started request=<Request [b'PUT']>
+2026-04-08 08:06:20,837 - DEBUG - send_request_body.complete
+2026-04-08 08:06:20,838 - DEBUG - receive_response_headers.started request=<Request [b'PUT']>
+2026-04-08 08:06:21,038 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'transfer-encoding', b'chunked'), (b'content-encoding', b'gzip'), (b'vary', b'accept-encoding, Origin, Access-Control-Request-Method, Access-Control-Request-Headers'), (b'content-type', b'application/json'), (b'date', b'Wed, 08 Apr 2026 08:06:20 GMT')])
+2026-04-08 08:06:21,039 - INFO - HTTP Request: PUT http://catalog-vector:6333/collections/services "HTTP/1.1 200 OK"
+2026-04-08 08:06:21,040 - DEBUG - receive_response_body.started request=<Request [b'PUT']>
+2026-04-08 08:06:21,041 - DEBUG - receive_response_body.complete
+2026-04-08 08:06:21,042 - DEBUG - response_closed.started
+2026-04-08 08:06:21,043 - DEBUG - response_closed.complete
+2026-04-08 08:06:21,046 - INFO - Collection 'services' created
+2026-04-08 08:06:21,048 - DEBUG - send_request_headers.started request=<Request [b'PUT']>
+2026-04-08 08:06:21,050 - DEBUG - send_request_headers.complete
+2026-04-08 08:06:21,050 - DEBUG - send_request_body.started request=<Request [b'PUT']>
+2026-04-08 08:06:21,052 - DEBUG - send_request_body.complete
+2026-04-08 08:06:21,054 - DEBUG - receive_response_headers.started request=<Request [b'PUT']>
+2026-04-08 08:06:21,211 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'transfer-encoding', b'chunked'), (b'content-encoding', b'gzip'), (b'vary', b'accept-encoding, Origin, Access-Control-Request-Method, Access-Control-Request-Headers'), (b'content-type', b'application/json'), (b'date', b'Wed, 08 Apr 2026 08:06:20 GMT')])
+2026-04-08 08:06:21,213 - INFO - HTTP Request: PUT http://catalog-vector:6333/collections/services_index "HTTP/1.1 200 OK"
+2026-04-08 08:06:21,214 - DEBUG - receive_response_body.started request=<Request [b'PUT']>
+2026-04-08 08:06:21,216 - DEBUG - receive_response_body.complete
+2026-04-08 08:06:21,217 - DEBUG - response_closed.started
+2026-04-08 08:06:21,218 - DEBUG - response_closed.complete
+2026-04-08 08:06:21,219 - INFO - Collection 'services_index' created
+2026-04-08 08:06:21,220 - INFO - 📦 Loading embedding model...
+2026-04-08 08:06:21,220 - INFO - Loading models...
+2026-04-08 08:06:21,223 - INFO - Load pretrained SentenceTransformer: Qwen/Qwen3-Embedding-0.6B
+2026-04-08 08:06:21,230 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443

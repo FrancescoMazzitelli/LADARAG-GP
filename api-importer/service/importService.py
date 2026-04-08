@@ -5,7 +5,8 @@ import prance          # libreria per risolvere i $ref negli OpenAPI YAML
 import os
 import json
 import re
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlparse
+import time
 
 
 class Service:
@@ -779,17 +780,42 @@ class Service:
         except Exception as e:
             print(f"Failed to register to Consul: {e}")
 
+    def _verify_service_in_mongo(self, service_id, retries=3, delay_sec=1.0):
+        verify_url = f"http://{self.GATEWAY_HOST}:{self.GATEWAY_PORT}/services/{service_id}"
+        for attempt in range(1, retries + 1):
+            try:
+                r = requests.get(verify_url, timeout=10)
+                if r.status_code == 200:
+                    return True
+                print(f"[MONGO][VERIFY][attempt {attempt}/{retries}] HTTP {r.status_code} for id={service_id}")
+            except Exception as e:
+                print(f"[MONGO][VERIFY][attempt {attempt}/{retries}] error for id={service_id}: {e}")
+            time.sleep(delay_sec)
+        return False
+
     def register_to_mongo(self, catalog_payload):
-        # salva il documento del servizio in MongoDB via catalog-gateway
-        # il gateway si occupa anche di indicizzare le capabilities in Qdrant
+        service_id = catalog_payload.get("id", "UNKNOWN")
+        post_url = f"http://{self.GATEWAY_HOST}:{self.GATEWAY_PORT}/service"
+
         try:
-            response = requests.post(
-                f"http://{self.GATEWAY_HOST}:{self.GATEWAY_PORT}/service",
-                json=catalog_payload
-            )
-            print(f"Catalog registered to Mongo API: HTTP {response.status_code}")
-        except Exception as e:
-            print(f"Failed to send catalog payload: {e}")
+            print(f"[MONGO][ATTEMPT] POST {post_url} id={service_id}")
+            response = requests.post(post_url, json=catalog_payload, timeout=15)
+            response.raise_for_status()
+            print(f"[MONGO][HTTP_OK] id={service_id} HTTP {response.status_code}")
+
+            if service_id == "UNKNOWN":
+                raise RuntimeError("[MONGO][INCONSISTENT] Missing 'id' in payload, cannot verify persistence")
+
+            if not self._verify_service_in_mongo(service_id):
+                raise RuntimeError(f"[MONGO][INCONSISTENT] HTTP success but service not found after write id={service_id}")
+
+            print(f"[MONGO][VERIFIED] id={service_id} persisted in Mongo")
+            return True
+
+        except requests.exceptions.RequestException as e:
+            status = e.response.status_code if getattr(e, "response", None) is not None else "N/A"
+            body = e.response.text if getattr(e, "response", None) is not None else ""
+            raise RuntimeError(f"[MONGO][FAILED] id={service_id} HTTP={status} body={body}") from e
 
     def import_apis(self):
         """
