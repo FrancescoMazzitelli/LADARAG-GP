@@ -2,14 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Bins API
   version: '1.0'
-  description: 'API for managing connected waste bins in urban areas. Supports creation,
-    lookup, update, and deletion of waste bins, as well as real-time monitoring of
-    fill levels, collection history, and bin status. Supports filtering by standardized
-    city zones (zoneId), bin type, and operational status, enabling cross-domain orchestration
-    such as prioritizing waste collection in zones with active events or high pedestrian
-    density.
-
-    '
+  description: |
+    API for managing connected waste bins in urban areas. Supports creation, lookup, update, and deletion of waste bins, as well as real-time monitoring of fill levels, collection history, and bin status. Supports filtering by standardized city zones (zoneId), bin type, and operational status, enabling cross-domain orchestration such as prioritizing waste collection in zones with active events or high pedestrian density.
   contact:
     name: Smart City Development Team
 servers:
@@ -97,8 +91,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart Bins microservice
-        is reachable and responsive.
+      description: Health check endpoint to verify that the Smart Bins microservice is reachable and responsive.
       summary: Health check
       responses:
         '200':
@@ -112,16 +105,11 @@ paths:
                   value: {}
   /bin:
     get:
-      description: 'Retrieve the list of smart waste bins registered in the city.
-        Use query parameters to filter by zone, status or bin type - for example,
-        to find all overflowing bins in Z-CENTRO or all organic bins requiring collection.
-
-        '
+      description: Retrieve the list of smart waste bins registered in the city. Use query parameters to filter by zone, status or bin type - for example, to find all overflowing bins in Z-CENTRO or all organic bins requiring collection.
       summary: Search bins
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "status",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "status", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
@@ -141,8 +129,7 @@ paths:
           - overflowing
           - maintenance
           - offline
-        description: Filter bins by operational status (e.g., overflowing to prioritize
-          urgent collection)
+        description: Filter bins by operational status (e.g., overflowing to prioritize urgent collection)
         examples:
           by_status_overflowing:
             value: overflowing

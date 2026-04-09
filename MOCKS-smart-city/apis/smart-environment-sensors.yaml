@@ -2,14 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Environment and Temperature Sensors API
   version: '1.0'
-  description: 'API for environmental monitoring across the city. Provides real-time
-    data on ambient temperature (Celsius), air quality (AQI), humidity, noise, and
-    weather alerts. Crucial for querying weather conditions or triggering cross-domain
-    actions (e.g., imposing traffic limits during high pollution or frost). Supports
-    querying by standardized city zone, sensor type, active alert status, and operational
-    status to identify faulty or low-battery sensors requiring maintenance.
-
-    '
+  description: |
+    API for environmental monitoring across the city. Provides real-time data on ambient temperature (Celsius), air quality (AQI), humidity, noise, and weather alerts. Crucial for querying weather conditions or triggering cross-domain actions (e.g., imposing traffic limits during high pollution or frost). Supports querying by standardized city zone, sensor type, active alert status, and operational status to identify faulty or low-battery sensors requiring maintenance.
   contact:
     name: Smart City Development Team
 servers:
@@ -63,8 +57,7 @@ components:
         lastReading:
           type: number
           format: float
-          description: Most recent sensor reading value (e.g., temperature in Celsius,
-            AQI value)
+          description: Most recent sensor reading value (e.g., temperature in Celsius, AQI value)
         readingUnit:
           type: string
           enum:
@@ -79,16 +72,13 @@ components:
         threshold:
           type: number
           format: float
-          description: Alert threshold value - when lastReading exceeds this, alertActive
-            becomes true
+          description: Alert threshold value - when lastReading exceeds this, alertActive becomes true
         alertActive:
           type: boolean
-          description: True if the current reading exceeds safe thresholds and triggers
-            an alert
+          description: True if the current reading exceeds safe thresholds and triggers an alert
         alertReason:
           type: string
-          description: Specific reason for the alert if active (e.g., HIGH_POLLUTION,
-            FROST_WARNING, HIGH_NOISE, NONE)
+          description: Specific reason for the alert if active (e.g., HIGH_POLLUTION, FROST_WARNING, HIGH_NOISE, NONE)
         batteryLevel:
           type: integer
           minimum: 0
@@ -122,8 +112,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart Sensors microservice
-        is reachable and responsive.
+      description: Health check endpoint to verify that the Smart Sensors microservice is reachable and responsive.
       summary: Health check
       responses:
         '200':
@@ -137,18 +126,11 @@ paths:
                   value: {}
   /sensor:
     get:
-      description: 'Retrieve environmental sensors deployed across the city. Use query
-        parameters to filter by zone, sensor type, alert status, or operational status
-        - for example to find all active air quality sensors in Z-CENTRO with an active
-        alert, all noise sensors across the city, or all sensors in fault/maintenance
-        state for servicing.
-
-        '
+      description: 'Retrieve environmental sensors deployed across the city. Use query parameters to filter by zone, sensor type, alert status, or operational status - for example to find all active air quality sensors in Z-CENTRO with an active alert, all noise sensors across the city, or all sensors in fault/maintenance state for servicing. '
       summary: Search environmental sensors
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "sensorType",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "sensorType", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
@@ -188,8 +170,7 @@ paths:
         in: query
         schema:
           type: boolean
-        description: Filter sensors currently triggering an alert (true = only sensors
-          in alert state)
+        description: Filter sensors currently triggering an alert (true = only sensors in alert state)
         examples:
           alert_active_true:
             value: true
@@ -203,11 +184,8 @@ paths:
           - maintenance
           - low_battery
           - fault
-        description: 'Filter by operational status - use ''active'' for reliable readings,
-          ''fault'' or ''maintenance'' to identify sensors needing service, ''low_battery''
-          to prioritize battery replacements
-
-          '
+        description: |
+          Filter by operational status - use 'active' for reliable readings, 'fault' or 'maintenance' to identify sensors needing service, 'low_battery' to prioritize battery replacements
         examples:
           active_only:
             value: active
@@ -604,8 +582,7 @@ paths:
                     status: active
   /sensor/{id}:
     get:
-      description: Retrieve the exact real-time reading and configuration of a single
-        sensor by ID.
+      description: Retrieve the exact real-time reading and configuration of a single sensor by ID.
       summary: Get sensor details by ID
       parameters:
       - name: id
@@ -642,8 +619,7 @@ paths:
         '404':
           description: Sensor not found
     put:
-      description: Update the configuration or latest reading of a specific environmental
-        sensor by ID.
+      description: Update the configuration or latest reading of a specific environmental sensor by ID.
       summary: Update sensor by ID
       parameters:
       - name: id
@@ -699,8 +675,7 @@ paths:
         '404':
           description: Sensor not found
     delete:
-      description: Remove a specific environmental sensor from the city monitoring
-        network by its ID.
+      description: Remove a specific environmental sensor from the city monitoring network by its ID.
       summary: Delete sensor by ID
       parameters:
       - name: id

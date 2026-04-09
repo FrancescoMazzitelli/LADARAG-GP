@@ -2,15 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Parking and Mobility API
   version: '1.0'
-  description: 'API for managing parking spots, lots, and dynamic pricing across the
-    city. Supports searching for available spots by standardized city zones (zoneId)
-    and spot type. Supports multi-zone queries (zoneIds) to find parking across all
-    zones returned by a previous task (e.g., all zones where tourist attractions are
-    open, or zones with low traffic congestion). Crucial for mobility orchestration
-    and cross-domain reactions, such as dynamically discounting or raising parking
-    prices in specific zones during traffic congestion or pollution events.
-
-    '
+  description: |
+    API for managing parking spots, lots, and dynamic pricing across the city. Supports searching for available spots by standardized city zones (zoneId) and spot type. Supports multi-zone queries (zoneIds) to find parking across all zones returned by a previous task (e.g., all zones where tourist attractions are open, or zones with low traffic congestion). Crucial for mobility orchestration and cross-domain reactions, such as dynamically discounting or raising parking prices in specific zones during traffic congestion or pollution events.
   contact:
     name: Smart City Development Team
 servers:
@@ -89,8 +82,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart Parking microservice
-        is reachable and responsive.
+      description: Health check endpoint to verify that the Smart Parking microservice is reachable and responsive.
       summary: Health check endpoint
       responses:
         '200':
@@ -104,26 +96,17 @@ paths:
                   value: {}
   /parking-spot:
     get:
-      description: 'Retrieve parking spots registered in the city. Use query parameters
-        to filter by zone, multiple zones, availability, spot type or status - for
-        example to find all free disabled spots in Z-CENTRO, all available electric
-        spots for EV drivers, or all free spots across every zone where tourist attractions
-        are currently open (use zoneIds with JMESPath join: {{task[?status==''open''][*].zoneId
-        | join('','', @)}}).
-
-        '
+      description: 'Retrieve parking spots registered in the city. Use query parameters to filter by zone, multiple zones, availability, spot type or status - for example to find all free disabled spots in Z-CENTRO, all available electric spots for EV drivers, or all free spots across every zone where tourist attractions are currently open (use zoneIds with JMESPath join: {{task[?status==''open''][*].zoneId | join('','', @)}}). '
       summary: Search parking spots
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "available",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "available", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
         schema:
           type: string
-        description: Filter parking spots by a single city zone identifier (e.g.,
-          Z-CENTRO)
+        description: Filter parking spots by a single city zone identifier (e.g., Z-CENTRO)
         examples:
           by_zone_centro:
             value: Z-CENTRO
@@ -135,15 +118,8 @@ paths:
             type: string
         style: form
         explode: false
-        description: 'Filter parking spots by multiple city zones, comma-separated
-          (e.g., Z-CENTRO,Z-NORD,Z-SUD). Primary use case: find parking in ALL zones
-          that have open tourist attractions, low traffic, etc. Use with JMESPath
-          join to collect zones from a previous task: {{task[*].zoneId | join('','',
-          @)}} - all zones from previous task {{task[?status==''open''][*].zoneId
-          | join('','', @)}} - zones where status is open {{task[?congestionLevel==''low''][*].zoneId
-          | join('','', @)}} - zones with low traffic
-
-          '
+        description: |
+          Filter parking spots by multiple city zones, comma-separated (e.g., Z-CENTRO,Z-NORD,Z-SUD). Primary use case: find parking in ALL zones that have open tourist attractions, low traffic, etc. Use with JMESPath join to collect zones from a previous task: {{task[*].zoneId | join(',', @)}} - all zones from previous task {{task[?status=='open'][*].zoneId | join(',', @)}} - zones where status is open {{task[?congestionLevel=='low'][*].zoneId | join(',', @)}} - zones with low traffic
         examples:
           multiple_zones:
             value: Z-CENTRO,Z-NORD
@@ -167,8 +143,7 @@ paths:
           - electric
           - motorcycle
           - reserved
-        description: Filter by spot type - use 'disabled' for accessibility, 'electric'
-          for EV charging
+        description: Filter by spot type - use 'disabled' for accessibility, 'electric' for EV charging
         examples:
           by_type_disabled:
             value: disabled
@@ -225,8 +200,7 @@ paths:
                     lastUpdated: '2025-09-25T11:00:00Z'
                   - id: 104
                     zoneId: Z-NORD
-                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo
-                      B03, Benevento
+                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo B03, Benevento
                     available: true
                     spotType: standard
                     pricePerHour: 0.5
@@ -342,8 +316,7 @@ paths:
                     lastUpdated: '2025-09-25T11:00:00Z'
                   - id: 104
                     zoneId: Z-NORD
-                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo
-                      B03, Benevento
+                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo B03, Benevento
                     available: true
                     spotType: standard
                     pricePerHour: 0.5
@@ -435,8 +408,7 @@ paths:
                     lastUpdated: '2025-09-25T11:00:00Z'
                   - id: 104
                     zoneId: Z-NORD
-                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo
-                      B03, Benevento
+                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo B03, Benevento
                     available: true
                     spotType: standard
                     pricePerHour: 0.5
@@ -486,8 +458,7 @@ paths:
                     lastUpdated: '2025-09-25T10:00:00Z'
                   - id: 104
                     zoneId: Z-NORD
-                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo
-                      B03, Benevento
+                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo B03, Benevento
                     available: true
                     spotType: standard
                     pricePerHour: 0.5
@@ -593,8 +564,7 @@ paths:
                     lastUpdated: '2025-09-25T11:00:00Z'
                   - id: 104
                     zoneId: Z-NORD
-                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo
-                      B03, Benevento
+                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo B03, Benevento
                     available: true
                     spotType: standard
                     pricePerHour: 0.5
@@ -716,8 +686,7 @@ paths:
                     lastUpdated: '2025-09-25T11:00:00Z'
                   - id: 104
                     zoneId: Z-NORD
-                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo
-                      B03, Benevento
+                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo B03, Benevento
                     available: true
                     spotType: standard
                     pricePerHour: 0.5
@@ -786,8 +755,7 @@ paths:
                     lastUpdated: '2025-09-25T11:00:00Z'
   /parking-spot/{id}:
     get:
-      description: Retrieve the current availability and details of a specific parking
-        spot by ID.
+      description: Retrieve the current availability and details of a specific parking spot by ID.
       summary: Get parking spot details by ID
       parameters:
       - name: id
@@ -820,8 +788,7 @@ paths:
         '404':
           description: Parking spot not found
     put:
-      description: Update the status or configuration of a specific parking spot by
-        ID.
+      description: Update the status or configuration of a specific parking spot by ID.
       summary: Update parking spot by ID
       parameters:
       - name: id
@@ -887,11 +854,8 @@ paths:
           description: Parking spot not found
   /parking-spot/zone/{zoneId}/pricing:
     put:
-      description: 'Dynamically adjust the hourly parking rate for all spots in a
-        specific zone. Useful for reacting to traffic congestion or pollution alerts
-        by incentivizing or discouraging parking in a given area.
-
-        '
+      description: |
+        Dynamically adjust the hourly parking rate for all spots in a specific zone. Useful for reacting to traffic congestion or pollution alerts by incentivizing or discouraging parking in a given area.
       summary: Update pricing for an entire zone
       parameters:
       - name: zoneId
@@ -915,8 +879,7 @@ paths:
                   description: The new hourly rate to apply to all spots in the zone
                 reason:
                   type: string
-                  description: Reason for the price update (e.g., HIGH_POLLUTION_INCENTIVE,
-                    CONGESTION_CHARGE)
+                  description: Reason for the price update (e.g., HIGH_POLLUTION_INCENTIVE, CONGESTION_CHARGE)
             examples:
               smog_discount:
                 value:

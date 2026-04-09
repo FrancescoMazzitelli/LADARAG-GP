@@ -128,7 +128,7 @@ try {
     println "[gateway] Registration failed after retries: ${e.message}"
     responseMap.status       = "error"
     responseMap.gatewayError = e.message
-    return responseMap
+    return "fail"
 }
 
 // ── 4. Register to Consul (with retry) ────────────────────────────────────
@@ -163,3 +163,4 @@ if (responseMap.status == "success") {
 } else {
     return "fail" // punta all'esempio 'fail' nel YAML
 }
+

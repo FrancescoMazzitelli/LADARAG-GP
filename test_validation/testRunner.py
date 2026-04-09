@@ -1,10 +1,21 @@
 """
-testRunner.py  (v2)
+testRunner.py  (v3)
 ====================
 Test runner per LADARAG-Extended con oracle multi-dimensionale e multiple run.
 
+Modifiche rispetto a v2:
+  - Fix bug matching path con parametri OpenAPI ({zoneId}, {countryCode}, ecc.)
+    check_layer1_plan usava endswith() che non gestiva i placeholder.
+    Ora usa _oracle_path_matches() con regex per supportare {param} nel oracle.
+  - infer_category rileva query verso la Smart City Intelligence API
+    (/city/alerts, /city/zone/{zoneId}/pulse, ecc.) e le classifica come
+    "intelligence" invece di "single-get".
+  - DEFAULTS["csv_file"] aggiornato a smart_city_goal_oriented_requests.csv.
+  - Aggiunto argomento --only-csv-categories per filtrare per colonna Category
+    del CSV (indipendente dalla categoria inferita dal oracle).
+
 Oracle a 4 layer:
-  L1 — Plan:      METHOD + path corretti
+  L1 — Plan:      METHOD + path corretti (con supporto {param} nel oracle)
   L2 — Execution: tutti i task hanno restituito 2xx
   L3 — Chaining:  placeholder risolti con valori non vuoti
   L4 — Schema:    body POST/PUT contengono campi con valori non vuoti
@@ -19,13 +30,14 @@ Run per categoria (default adattivo):
   single-get / single-delete  → 1 run
   single-post / single-put    → 2 run
   chaining / cross-service    → 3 run
-  three-step                  → 3 run
+  three-step / intelligence   → 3 run
 
 Uso:
     python testRunner.py
-    python testRunner.py --csv smart_city_test_requests.csv
+    python testRunner.py --csv smart_city_goal_oriented_requests.csv
     python testRunner.py --runs 5
-    python testRunner.py --only-categories chaining cross-service
+    python testRunner.py --only-categories cross-service intelligence
+    python testRunner.py --only-csv-categories two-service three-service
     python testRunner.py --fail-fast
     python testRunner.py --control-url http://localhost:5500
 """
@@ -52,7 +64,7 @@ from datetime import datetime
 
 DEFAULTS = {
     "control_url": "http://localhost:5500/api/control/invoke",
-    "csv_file":    "C:\\Universita\\Tesi\\LADARAG-Extended-Rita\\test_validation\\smart_city_test_requests.csv",
+    "csv_file":    "test_validation/smart_city_test_requests.csv",  # ← AGGIORNATO
     "output_dir":  ".",
     "timeout":     90,
     "delay":       0.3,
@@ -71,8 +83,18 @@ RUNS_BY_CATEGORY = {
     "two-step":          2,
     "three-step":        3,
     "cross-service":     3,
+    "intelligence":      3,   # ← AGGIUNTO: Intelligence API richiede più run
 }
 DEFAULT_RUNS = 2
+
+# Percorsi delle API della Smart City Intelligence — usati da infer_category
+_INTELLIGENCE_PATHS = {
+    "/city/alerts",
+    "/city/maintenance/urgent",
+    "/city/tourism/best-attraction",
+    "/city/mobility/best-parking",
+    "/city/mobility/best-charging",
+}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -107,12 +129,59 @@ def extract_from_task(task):
     return method, path
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# FIX v3: ORACLE PATH MATCHING CON SUPPORTO {param}
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _oracle_path_matches(t_path: str, o_path: str) -> bool:
+    """
+    Confronta il path di un task con il path dell'oracle.
+
+    Supporta placeholder OpenAPI nel formato {paramName} presenti nell'oracle,
+    che vengono convertiti in regex [^/]+ (qualsiasi segmento non-slash).
+
+    Esempi corretti dopo la fix:
+      t_path = "/city/zone/Z-CENTRO/pulse"
+      o_path = "/city/zone/{zoneId}/pulse"   → match ✓
+
+      t_path = "/api/v3/CountryInfo/IT"
+      o_path = "/api/v3/CountryInfo/{countryCode}"   → match ✓
+
+      t_path = "/bin"
+      o_path = "/bin"   → match ✓  (fast path senza regex)
+
+    Backward compatible: se o_path non contiene { } usa endswith() originale.
+    """
+    if '{' not in o_path:
+        # Fast path: nessun placeholder → comportamento originale
+        return t_path.endswith(o_path)
+
+    # Costruisce pattern regex dal oracle path con placeholder
+    # es. "/city/zone/{zoneId}/pulse" → r"\/city\/zone\/[^/]+\/pulse$"
+    segments = re.split(r'\{[^}]+\}', o_path)          # divide sui placeholder
+    pattern  = '[^/]+'.join(re.escape(s) for s in segments) + r'$'
+    return bool(re.search(pattern, t_path))
+
+
 def infer_category(oracle_steps, query):
     n       = len(oracle_steps)
     methods = [m for m, _ in oracle_steps]
     paths   = [p for _, p in oracle_steps]
-    
-    # Se i path puntano a root diverse (es. /api e /v1), è sempre un cross-service!
+
+    # ── AGGIUNTO v3: Intelligence API ────────────────────────────────────────
+    # Rileva se almeno un passo del oracle punta all'Intelligence API.
+    # Controlla sia path esatti (/city/alerts) sia pattern (/city/zone/.../pulse).
+    for p in paths:
+        if p in _INTELLIGENCE_PATHS:
+            return "intelligence"
+        if re.match(r'^/city/zone/[^/]+/pulse$', p) or p.startswith('/city/zone/') and p.endswith('/pulse'):
+            return "intelligence"
+        # Gestisce anche il placeholder nel oracle: /city/zone/{zoneId}/pulse
+        if '/city/zone/{' in p and p.endswith('/pulse'):
+            return "intelligence"
+
+    # ── Logica originale ─────────────────────────────────────────────────────
+    # Servizi diversi = risorse diverse (primo segmento del path dopo /)
     resources = {p.split('/')[1] for p in paths if '/' in p and len(p.split('/')) > 1}
     if len(resources) > 1:
         return "cross-service"
@@ -129,7 +198,7 @@ def infer_category(oracle_steps, query):
         if set(methods) in ({"GET", "PUT"}, {"GET", "DELETE"}):
             return "chaining-find-put"
         return "two-step"
-    
+
     return "three-step"
 
 
@@ -149,8 +218,10 @@ def canonical_plan(plan):
 
 def check_layer1_plan(tasks, oracle_steps):
     """
-    L1 — Plan: METHOD + path corretti (matching greedy, path suffix).
-    Certifica che il piano abbia chiamato gli endpoint giusti nel numero giusto.
+    L1 — Plan: METHOD + path corretti.
+
+    FIX v3: usa _oracle_path_matches() invece di endswith() per gestire
+    placeholder {param} nel oracle (es. /city/zone/{zoneId}/pulse).
     """
     matched_oracle = set()
     matches        = []
@@ -162,7 +233,8 @@ def check_layer1_plan(tasks, oracle_steps):
         for idx, (o_method, o_path) in enumerate(oracle_steps):
             if idx in matched_oracle:
                 continue
-            if t_method == o_method and t_path.endswith(o_path):
+            # ← MODIFICATO: _oracle_path_matches() invece di t_path.endswith(o_path)
+            if t_method == o_method and _oracle_path_matches(t_path, o_path):
                 matches.append({"task": (t_method, t_path), "oracle": (o_method, o_path)})
                 matched_oracle.add(idx)
                 found = True
@@ -196,7 +268,6 @@ def check_layer1_plan(tasks, oracle_steps):
 def check_layer2_execution(execution_results):
     """
     L2 — Execution: tutti i task hanno restituito status SUCCESS (HTTP 2xx).
-    Cattura fallimenti reali dell'API che L1 non vede (piano giusto, body sbagliato).
     """
     if not execution_results:
         return {"verdict": "SKIP", "details": "Nessun risultato di esecuzione", "failed": [], "total": 0, "passed": 0}
@@ -220,7 +291,6 @@ def check_layer2_execution(execution_results):
 def check_layer3_chaining(tasks, execution_results):
     """
     L3 — Chaining: i placeholder nell'URL sono stati risolti con valori non vuoti.
-    Cattura {{now}} risolto a "", ID non trovati da FIND, indici fuori range.
     """
     issues = []
 
@@ -228,12 +298,10 @@ def check_layer3_chaining(tasks, execution_results):
         url       = str(task.get("url", ""))
         task_name = task.get("task_name", "unnamed")
 
-        # Placeholder non risolti rimasti nell'URL
         if re.search(r'\{\{.*?\}\}', url):
             issues.append(f"{task_name}: placeholder non risolto in URL")
             continue
 
-        # Segmenti vuoti (placeholder risolto a "")
         path = urlparse(url).path
         if re.search(r'//+', path):
             issues.append(f"{task_name}: segmento vuoto nell'URL (placeholder risolto a '')")
@@ -247,7 +315,6 @@ def check_layer3_chaining(tasks, execution_results):
 def check_layer4_schema(tasks, execution_results):
     """
     L4 — Schema: i body POST/PUT contengono campi con valori non vuoti.
-    Cattura campi required omessi o risolti a stringa vuota (es. {{now}}).
     """
     issues = []
 
@@ -275,12 +342,6 @@ def check_layer4_schema(tasks, execution_results):
 
 
 def evaluate_all_layers(data, oracle_steps, tasks):
-    """
-    Esegue tutti e 4 i layer e calcola il verdetto finale.
-    CORRECT   = tutti i layer PASS (o SKIP)
-    PARTIAL   = L1 almeno PARTIAL ma qualche layer FAIL
-    INCORRECT = L1 FAIL
-    """
     exec_results = data.get("execution_results", [])
     if isinstance(exec_results, dict):
         exec_results = []
@@ -340,18 +401,26 @@ def run_tests(args):
     except Exception:
         print("  [WARN] Il control-unit potrebbe non essere raggiungibile.\n")
 
+    # Colonne riconosciute: Questions, Oracle, Category, Noise_Type.
+    # MockLastTaskResponse è una colonna di sola lettura umana e viene ignorata.
+    _SKIP_COLS = {"mocklasttaskresponse"}
+
     rows = []
     with open(args.csv_file, newline='', encoding='utf-8-sig') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            q_key = next((k for k in row if 'question' in k.lower()), None)
-            o_key = next((k for k in row if 'oracle'   in k.lower()), None)
+            # filtra esplicitamente le colonne di riferimento non operative
+            row = {k: v for k, v in row.items() if k is not None and k.lower() not in _SKIP_COLS}
+            q_key    = next((k for k in row if 'question' in k.lower()), None)
+            o_key    = next((k for k in row if 'oracle'   in k.lower()), None)
+            n_key    = next((k for k in row if 'noise'    in k.lower()), None)
+            cat_key  = next((k for k in row if 'category' in k.lower()), None)
             if q_key and o_key:
-                n_key = next((k for k in row if 'noise' in k.lower()), None)
                 rows.append({
-                    "question":   row[q_key].strip(),
-                    "oracle":     row[o_key].strip(),
-                    "noise_type": row[n_key].strip() if n_key and row.get(n_key) else None,
+                    "question":     row[q_key].strip(),
+                    "oracle":       row[o_key].strip(),
+                    "noise_type":   row[n_key].strip()    if n_key   and row.get(n_key)   else None,
+                    "csv_category": row[cat_key].strip()  if cat_key and row.get(cat_key) else None,
                 })
 
     print(f"Caricate {len(rows)} query da '{args.csv_file}'")
@@ -362,7 +431,15 @@ def run_tests(args):
             if any(c in infer_category(parse_oracle(r["oracle"]), r["question"])
                    for c in args.only_categories)
         ]
-        print(f"Filtrate a {len(rows)} query per categorie: {args.only_categories}")
+        print(f"Filtrate a {len(rows)} query per categorie inferite: {args.only_categories}")
+
+    # AGGIUNTO v3: filtro per colonna Category del CSV
+    if getattr(args, "only_csv_categories", None):
+        rows = [
+            r for r in rows
+            if r.get("csv_category") and any(c in r["csv_category"] for c in args.only_csv_categories)
+        ]
+        print(f"Filtrate a {len(rows)} query per csv_category: {args.only_csv_categories}")
 
     if getattr(args, "only_noise", None):
         rows = [
@@ -383,9 +460,9 @@ def run_tests(args):
     print(f"\n{'='*72}")
     print(f"Avvio — {total} query — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Oracle: 4 layer (L1 plan · L2 execution · L3 chaining · L4 schema)")
+    print(f"L1 fix: path matching con supporto {{param}} OpenAPI")
     print(f"{'='*72}\n")
 
-    # noise_type stats: {noise_type: {correct,partial,incorrect,error,total}}
     noise_stats = defaultdict(lambda: {
         "correct": 0, "partial": 0, "incorrect": 0, "error": 0, "total": 0,
     })
@@ -394,11 +471,13 @@ def run_tests(args):
         question     = row["question"]
         oracle_steps = parse_oracle(row["oracle"])
         category     = infer_category(oracle_steps, question)
-        noise_type   = row.get("noise_type")  # None per CSV senza colonna
+        noise_type   = row.get("noise_type")
+        csv_category = row.get("csv_category")
         n_runs       = args.runs if args.runs else RUNS_BY_CATEGORY.get(category, DEFAULT_RUNS)
 
-        noise_label = f"[{noise_type}]" if noise_type else ""
-        print(f"[{idx:>3}/{total}] {category:<22} (×{n_runs}) {noise_label:<22} {question[:50]}")
+        noise_label = f"[{noise_type}]"    if noise_type   else ""
+        csv_label   = f"[{csv_category}]"  if csv_category else ""
+        print(f"[{idx:>3}/{total}] {category:<22} (×{n_runs}) {csv_label:<20} {question[:50]}")
 
         run_records     = []
         plan_signatures = []
@@ -440,7 +519,6 @@ def run_tests(args):
                 f"F1={l1['f1']:.2f} ⏱{outcome['latency']:.1f}s"
             )
 
-            # Dettagli errori
             for mm in l1.get("mismatches", []):
                 print(f"              L1 extra:   {mm['task'][0]} {mm['task'][1]}")
             matched_idxs = {
@@ -465,7 +543,6 @@ def run_tests(args):
 
             time.sleep(args.delay)
 
-        # ── Aggregazione ──────────────────────────────────────────────────
         valid_runs = [r for r in run_records if "final" in r]
         n_valid    = len(valid_runs)
 
@@ -500,7 +577,6 @@ def run_tests(args):
         cs["pass_at_k"]       += int(pass_at_k)
         cs["consistency_sum"] += consistency
 
-        # Track noise_type stats
         if noise_type:
             ns = noise_stats[noise_type]
             ns["total"] += 1
@@ -508,7 +584,7 @@ def run_tests(args):
 
         results.append({
             "idx": idx, "question": question, "oracle": oracle_steps,
-            "category": category, "noise_type": noise_type,
+            "category": category, "csv_category": csv_category, "noise_type": noise_type,
             "n_runs": n_runs, "n_valid": n_valid,
             "agg_final": agg_final, "pass_at_1": pass_at_1,
             "pass_at_k": pass_at_k, "consistency": consistency,
@@ -625,7 +701,7 @@ def print_summary(data):
         print(f"  L3 Chaining:  {l3_fails:>4}  ({l3_fails/total_valid_runs:.1%})")
         print(f"  L4 Schema:    {l4_fails:>4}  ({l4_fails/total_valid_runs:.1%})")
 
-    # ── Robustezza per tipo di rumore ────────────────────────────────────────
+    # Robustezza per noise type
     noise_stats = data.get("noise_stats", {})
     if noise_stats:
         print(f"\nRobustezza per tipo di rumore:")
@@ -637,8 +713,7 @@ def print_summary(data):
             tot = ns["total"]
             if tot == 0:
                 continue
-            acc = ns.get("correct", 0) / tot * 100
-            # Resilience icon: green>=80%, yellow>=50%, red<50%
+            acc  = ns.get("correct", 0) / tot * 100
             icon = "🟢" if acc >= 80 else ("🟡" if acc >= 50 else "🔴")
             print(
                 f"  {noise_type:<26}{tot:>4}{ns.get('correct',0):>5}"
@@ -646,11 +721,10 @@ def print_summary(data):
                 f"{ns.get('error',0):>5}  {acc:>5.0f}% {icon}"
             )
 
-        # Totale robustezza (solo righe con noise_type definito)
         total_noise = sum(ns["total"] for ns in noise_stats.values())
         total_ok    = sum(ns.get("correct", 0) for ns in noise_stats.values())
         if total_noise > 0:
-            rob = total_ok / total_noise * 100
+            rob      = total_ok / total_noise * 100
             rob_icon = "🟢" if rob >= 80 else ("🟡" if rob >= 50 else "🔴")
             print(f"\n  Resilienza complessiva: {rob:.1f}% {rob_icon}  "
                   f"({total_ok}/{total_noise} query rumorose corrette)")
@@ -665,7 +739,8 @@ def write_reports(data, output_dir):
 
     with open(detail, 'w', encoding='utf-8') as f:
         for r in data["results"]:
-            f.write(f"--- Query #{r['idx']} [{r['category']}] ---\n")
+            cat_label = f"[{r.get('csv_category')}]" if r.get('csv_category') else ""
+            f.write(f"--- Query #{r['idx']} [{r['category']}] {cat_label} ---\n")
             f.write(f"Q: {r['question']}\n")
             f.write(f"Oracle: {r['oracle']}\n")
             noise_label = f"  Noise: {r['noise_type']}" if r.get("noise_type") else ""
@@ -696,7 +771,6 @@ def write_reports(data, output_dir):
     with open(summary, 'w', encoding='utf-8') as f:
         f.write(buf.getvalue())
 
-    # JSON compatibile con plan_validator.py esistente
     plan_log = []
     for r in data["results"]:
         for run in r.get("run_records", []):
@@ -721,20 +795,25 @@ def write_reports(data, output_dir):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Test runner v2 per LADARAG-Extended")
-    p.add_argument("--control-url",     default=DEFAULTS["control_url"])
-    p.add_argument("--csv",             default=DEFAULTS["csv_file"], dest="csv_file")
-    p.add_argument("--output-dir",      default=DEFAULTS["output_dir"])
-    p.add_argument("--timeout",         default=DEFAULTS["timeout"], type=int)
-    p.add_argument("--delay",           default=DEFAULTS["delay"], type=float)
-    p.add_argument("--runs",            default=DEFAULTS["runs"], type=int,
+    p = argparse.ArgumentParser(description="Test runner v3 per LADARAG-Extended")
+    p.add_argument("--control-url",        default=DEFAULTS["control_url"])
+    p.add_argument("--csv",                default=DEFAULTS["csv_file"], dest="csv_file")
+    p.add_argument("--output-dir",         default=DEFAULTS["output_dir"])
+    p.add_argument("--timeout",            default=DEFAULTS["timeout"], type=int)
+    p.add_argument("--delay",              default=DEFAULTS["delay"], type=float)
+    p.add_argument("--runs",               default=DEFAULTS["runs"], type=int,
                    help="Forza N run per tutte le query (default: adattivo per categoria)")
-    p.add_argument("--only-categories", nargs="+", default=None, metavar="CAT")
-    p.add_argument("--only-noise",       nargs="+", default=None, metavar="NOISE",
-                   help="Esegui solo query con i tipi di rumore specificati "
-                        "(es: typo ambiguous multilingual-it minimal)")
-    p.add_argument("--fail-fast",       action="store_true")
-    p.add_argument("--no-report",       action="store_true")
+    p.add_argument("--only-categories",    nargs="+", default=None, metavar="CAT",
+                   help="Filtra per categoria inferita dal oracle "
+                        "(es: single-get cross-service intelligence three-step)")
+    # AGGIUNTO v3: filtro per colonna Category del CSV
+    p.add_argument("--only-csv-categories", nargs="+", default=None, metavar="CSV_CAT",
+                   help="Filtra per colonna Category del CSV "
+                        "(es: single-goal two-service three-service intelligence)")
+    p.add_argument("--only-noise",         nargs="+", default=None, metavar="NOISE",
+                   help="Esegui solo query con i tipi di rumore specificati")
+    p.add_argument("--fail-fast",          action="store_true")
+    p.add_argument("--no-report",          action="store_true")
     return p.parse_args()
 
 

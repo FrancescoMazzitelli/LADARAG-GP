@@ -2,15 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Emergency Services API
   version: '1.0'
-  description: 'API for managing emergency units and resources across the city. Supports
-    creation, lookup, update, and deletion of emergency units including their status,
-    availability, active incident tracking, and dispatch information. Supports filtering
-    by standardized city zones (zoneId), unit type, and availability, enabling cross-domain
-    orchestration such as finding all available medical units in a zone with an active
-    traffic incident, or coordinating emergency response across multiple domains (traffic,
-    sensors, lighting).
-
-    '
+  description: |
+    API for managing emergency units and resources across the city. Supports creation, lookup, update, and deletion of emergency units including their status, availability, active incident tracking, and dispatch information. Supports filtering by standardized city zones (zoneId), unit type, and availability, enabling cross-domain orchestration such as finding all available medical units in a zone with an active traffic incident, or coordinating emergency response across multiple domains (traffic, sensors, lighting).
   contact:
     name: Smart City Development Team
 servers:
@@ -46,8 +39,7 @@ components:
       properties:
         zoneId:
           type: string
-          description: Standardized city zone identifier where the unit is currently
-            stationed or operating (e.g., Z-CENTRO, Z-NORD)
+          description: Standardized city zone identifier where the unit is currently stationed or operating (e.g., Z-CENTRO, Z-NORD)
         type:
           type: string
           enum:
@@ -62,8 +54,7 @@ components:
           description: Current location or base station of the unit
         available:
           type: boolean
-          description: Whether the unit is currently available for dispatch (true
-            = idle and ready)
+          description: Whether the unit is currently available for dispatch (true = idle and ready)
         status:
           type: string
           enum:
@@ -77,8 +68,7 @@ components:
         incidentId:
           type: string
           nullable: true
-          description: Identifier of the incident the unit is currently assigned to
-            (null if idle)
+          description: Identifier of the incident the unit is currently assigned to (null if idle)
         dispatchTime:
           type: string
           format: date-time
@@ -101,8 +91,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart Emergency Services
-        microservice is running and responsive.
+      description: Health check endpoint to verify that the Smart Emergency Services microservice is running and responsive.
       summary: Health check
       responses:
         '200':
@@ -116,24 +105,17 @@ paths:
                   value: {}
   /emergency-unit:
     get:
-      description: 'Retrieve emergency units registered in the city response system.
-        Use query parameters to filter by zone, unit type, or availability - for example,
-        to find all available medical units in Z-CENTRO, or all fire units currently
-        responding to incidents across the city.
-
-        '
+      description: Retrieve emergency units registered in the city response system. Use query parameters to filter by zone, unit type, or availability - for example, to find all available medical units in Z-CENTRO, or all fire units currently responding to incidents across the city.
       summary: Search emergency units
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "available",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "available", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
         schema:
           type: string
-        description: Filter units by the city zone where they are stationed or currently
-          operating
+        description: Filter units by the city zone where they are stationed or currently operating
         examples:
           by_zone_centro:
             value: Z-CENTRO
@@ -141,8 +123,7 @@ paths:
         in: query
         schema:
           type: boolean
-        description: Filter only units currently available for dispatch (true = idle
-          and ready)
+        description: Filter only units currently available for dispatch (true = idle and ready)
         examples:
           available_true:
             value: true
@@ -190,8 +171,7 @@ paths:
                   - id: 1
                     zoneId: Z-OVEST
                     type: fire
-                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
-                      Benevento
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
                     available: false
                     status: responding
                     incidentId: INC-20250925-042
@@ -327,8 +307,7 @@ paths:
                   - id: 1
                     zoneId: Z-OVEST
                     type: fire
-                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
-                      Benevento
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
                     available: false
                     status: responding
                     incidentId: INC-20250925-042
@@ -424,8 +403,7 @@ paths:
                   - id: 1
                     zoneId: Z-OVEST
                     type: fire
-                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
-                      Benevento
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
                     available: false
                     status: responding
                     incidentId: INC-20250925-042
@@ -535,8 +513,7 @@ paths:
                   - id: 1
                     zoneId: Z-OVEST
                     type: fire
-                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
-                      Benevento
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
                     available: false
                     status: responding
                     incidentId: INC-20250925-042
@@ -645,8 +622,7 @@ paths:
                     id: 1
                     zoneId: Z-OVEST
                     type: fire
-                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
-                      Benevento
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
                     available: false
                     status: responding
                     incidentId: INC-20250925-042
@@ -678,8 +654,7 @@ paths:
                 value:
                   zoneId: Z-OVEST
                   type: fire
-                  location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
-                    Benevento
+                  location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
                   available: true
                   status: idle
                   incidentId: null
@@ -699,8 +674,7 @@ paths:
                     id: 1
                     zoneId: Z-OVEST
                     type: fire
-                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte,
-                      Benevento
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
                     available: true
                     status: idle
                     incidentId: null
@@ -728,11 +702,8 @@ paths:
           description: Emergency unit not found
   /emergency-unit/zone/{zoneId}/status:
     put:
-      description: 'Trigger a coordinated status update for all emergency units operating
-        in a specific zone. Useful for city-wide emergency protocols such as placing
-        all units in a zone on alert, or releasing them after an incident is resolved.
-
-        '
+      description: |
+        Trigger a coordinated status update for all emergency units operating in a specific zone. Useful for city-wide emergency protocols such as placing all units in a zone on alert, or releasing them after an incident is resolved.
       summary: Update status of all units in a zone
       parameters:
       - name: zoneId
@@ -762,8 +733,7 @@ paths:
                   description: New status to apply to all units in this zone
                 reason:
                   type: string
-                  description: Reason for the status change (e.g., MAJOR_INCIDENT,
-                    DRILL, INCIDENT_RESOLVED)
+                  description: Reason for the status change (e.g., MAJOR_INCIDENT, DRILL, INCIDENT_RESOLVED)
             examples:
               alert_zone:
                 value:

@@ -2,14 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Lighting and Energy API
   version: '1.0'
-  description: 'API for managing, monitoring, and controlling the urban street lighting
-    infrastructure. Supports zone-based control (zoneId), allowing the orchestration
-    engine to dynamically adjust lighting brightness across entire city districts
-    in response to traffic incidents, pedestrian density, or severe weather conditions.
-    Supports multi-zone queries (zoneIds) to find malfunctioning lights across all
-    zones returned by a previous task (e.g., zones with active sensor alerts).
-
-    '
+  description: |
+    API for managing, monitoring, and controlling the urban street lighting infrastructure. Supports zone-based control (zoneId), allowing the orchestration engine to dynamically adjust lighting brightness across entire city districts in response to traffic incidents, pedestrian density, or severe weather conditions. Supports multi-zone queries (zoneIds) to find malfunctioning lights across all zones returned by a previous task (e.g., zones with active sensor alerts).
   contact:
     name: Smart City Development Team
 servers:
@@ -37,8 +31,7 @@ components:
           id:
             type: integer
             format: int64
-            description: Unique, auto-generated database identifier for the street
-              light pole.
+            description: Unique, auto-generated database identifier for the street light pole.
         required:
         - id
     NewLight:
@@ -49,8 +42,7 @@ components:
           description: Standardized city zone identifier (e.g., Z-CENTRO, Z-NORD)
         location:
           type: string
-          description: Precise physical location or topographical reference of the
-            light pole.
+          description: Precise physical location or topographical reference of the light pole.
         status:
           type: string
           enum:
@@ -78,8 +70,7 @@ components:
 paths:
   /health:
     get:
-      description: Performs a shallow health check to verify that the Smart Lighting
-        microservice is reachable and responsive.
+      description: Performs a shallow health check to verify that the Smart Lighting microservice is reachable and responsive.
       summary: Health check endpoint
       responses:
         '200':
@@ -93,17 +84,11 @@ paths:
                   value: {}
   /light:
     get:
-      description: 'Retrieves a list of smart street lights. Use query parameters
-        to filter by zone, multiple zones, or operational status - for example to
-        find all malfunctioning lights in Z-CENTRO, or all offline lights across every
-        zone that has an active environmental alert (use zoneIds with JMESPath join).
-
-        '
+      description: 'Retrieves a list of smart street lights. Use query parameters to filter by zone, multiple zones, or operational status - for example to find all malfunctioning lights in Z-CENTRO, or all offline lights across every zone that has an active environmental alert (use zoneIds with JMESPath join). '
       summary: Search smart lights
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "status",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "status", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
@@ -121,12 +106,8 @@ paths:
             type: string
         style: form
         explode: false
-        description: 'Filter lights by multiple city zones, comma-separated (e.g.,
-          Z-CENTRO,Z-NORD). Use with JMESPath join to collect zones from a previous
-          task: {{task[*].zoneId | join('','', @)}} or {{task[?alertActive==`true`][*].zoneId
-          | join('','', @)}}
-
-          '
+        description: |
+          Filter lights by multiple city zones, comma-separated (e.g., Z-CENTRO,Z-NORD). Use with JMESPath join to collect zones from a previous task: {{task[*].zoneId | join(',', @)}} or {{task[?alertActive==`true`][*].zoneId | join(',', @)}}
         examples:
           multiple_zones:
             value: Z-CENTRO,Z-NORD
@@ -138,8 +119,7 @@ paths:
           - true
           - false
           - malfunctioning
-        description: Filter by operational status (e.g., malfunctioning to find broken
-          lights)
+        description: Filter by operational status (e.g., malfunctioning to find broken lights)
         examples:
           by_status_malfunctioning:
             value: malfunctioning
@@ -396,8 +376,7 @@ paths:
                     energyConsumption: 0.0
                     smartEnabled: true
     post:
-      description: Registers a newly installed smart light pole into the city's infrastructure
-        grid.
+      description: Registers a newly installed smart light pole into the city's infrastructure grid.
       summary: Register new smart light
       requestBody:
         required: true
@@ -511,8 +490,7 @@ paths:
         '404':
           description: The specified smart light ID was not found.
     delete:
-      description: Permanently removes a smart light pole from the city's infrastructure
-        registry.
+      description: Permanently removes a smart light pole from the city's infrastructure registry.
       summary: Delete smart light by ID
       parameters:
       - name: id
@@ -530,11 +508,8 @@ paths:
           description: The specified smart light ID was not found.
   /light/zone/{zoneId}/brightness:
     put:
-      description: 'Dynamically adjust the brightness level for all smart street lights
-        within a specific zone. Useful for reacting to emergencies, traffic incidents,
-        or energy-saving schedules.
-
-        '
+      description: |
+        Dynamically adjust the brightness level for all smart street lights within a specific zone. Useful for reacting to emergencies, traffic incidents, or energy-saving schedules.
       summary: Set brightness for an entire zone
       parameters:
       - name: zoneId
@@ -557,8 +532,7 @@ paths:
                   description: New brightness level percentage (0 to 100)
                 reason:
                   type: string
-                  description: Reason for the change (e.g., EMERGENCY, WEATHER_HAZARD,
-                    ENERGY_SAVING)
+                  description: Reason for the change (e.g., EMERGENCY, WEATHER_HAZARD, ENERGY_SAVING)
             examples:
               emergency_lighting:
                 value:

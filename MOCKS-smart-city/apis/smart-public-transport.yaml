@@ -2,14 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Public Transport and Transit API
   version: '1.0'
-  description: 'API for managing public transport vehicles (buses, trams, metro) and
-    routes across the city. Crucial for urban mobility orchestration. Supports dynamic
-    filtering by city zones (zoneId) and operational status. Supports multi-zone queries
-    (zoneIds) to find vehicles across all zones returned by a previous task. Can be
-    used as an actuator to halt or reroute transit services in specific zones during
-    environmental emergencies or severe traffic congestion.
-
-    '
+  description: |
+    API for managing public transport vehicles (buses, trams, metro) and routes across the city. Crucial for urban mobility orchestration. Supports dynamic filtering by city zones (zoneId) and operational status. Supports multi-zone queries (zoneIds) to find vehicles across all zones returned by a previous task. Can be used as an actuator to halt or reroute transit services in specific zones during environmental emergencies or severe traffic congestion.
   contact:
     name: Smart City Development Team
 servers:
@@ -45,8 +39,7 @@ components:
       properties:
         zoneId:
           type: string
-          description: Standardized city zone identifier where the vehicle is currently
-            located (e.g., Z-CENTRO, Z-NORD)
+          description: Standardized city zone identifier where the vehicle is currently located (e.g., Z-CENTRO, Z-NORD)
         routeId:
           type: string
           description: Identifier of the route the vehicle is currently serving
@@ -93,8 +86,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart Public Transport
-        microservice is reachable and responsive.
+      description: Health check endpoint to verify that the Smart Public Transport microservice is reachable and responsive.
       summary: Health check endpoint
       responses:
         '200':
@@ -108,18 +100,11 @@ paths:
                   value: {}
   /vehicle:
     get:
-      description: 'Retrieve public transport vehicles currently tracked by the system.
-        Use query parameters to filter by city zone, multiple zones, operational status,
-        or vehicle type - for example to find all delayed buses in Z-CENTRO, or all
-        vehicles across every zone where a traffic incident has been detected (use
-        zoneIds with JMESPath join).
-
-        '
+      description: Retrieve public transport vehicles currently tracked by the system. Use query parameters to filter by city zone, multiple zones, operational status, or vehicle type - for example to find all delayed buses in Z-CENTRO, or all vehicles across every zone where a traffic incident has been detected (use zoneIds with JMESPath join).
       summary: Search transit vehicles
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "status",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "status", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
@@ -137,12 +122,8 @@ paths:
             type: string
         style: form
         explode: false
-        description: 'Filter vehicles by multiple city zones, comma-separated (e.g.,
-          Z-CENTRO,Z-NORD). Use with JMESPath join to collect zones from a previous
-          task: {{task[*].zoneId | join('','', @)}} or {{task[?incidentDetected==`true`][*].zoneId
-          | join('','', @)}}
-
-          '
+        description: |
+          Filter vehicles by multiple city zones, comma-separated (e.g., Z-CENTRO,Z-NORD). Use with JMESPath join to collect zones from a previous task: {{task[*].zoneId | join(',', @)}} or {{task[?incidentDetected==`true`][*].zoneId | join(',', @)}}
         examples:
           multiple_zones:
             value: Z-CENTRO,Z-NORD
@@ -217,8 +198,7 @@ paths:
                     zoneId: Z-EST
                     routeId: Linea 7
                     vehicleType: bus
-                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari,
-                      Benevento
+                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
                     occupancy: 61
                     capacity: 75
                     status: in-service
@@ -303,8 +283,7 @@ paths:
                     zoneId: Z-EST
                     routeId: Linea 7
                     vehicleType: bus
-                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari,
-                      Benevento
+                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
                     occupancy: 61
                     capacity: 75
                     status: in-service
@@ -406,8 +385,7 @@ paths:
                     zoneId: Z-EST
                     routeId: Linea 7
                     vehicleType: bus
-                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari,
-                      Benevento
+                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
                     occupancy: 61
                     capacity: 75
                     status: in-service
@@ -549,8 +527,7 @@ paths:
                     lastUpdated: '2025-09-25T06:00:00Z'
   /vehicle/{id}:
     get:
-      description: Retrieve real-time data for a specific public transport vehicle
-        by ID.
+      description: Retrieve real-time data for a specific public transport vehicle by ID.
       summary: Get vehicle details by ID
       parameters:
       - name: id
@@ -584,8 +561,7 @@ paths:
         '404':
           description: Vehicle not found
     put:
-      description: Update the real-time data of a specific public transport vehicle
-        by ID.
+      description: Update the real-time data of a specific public transport vehicle by ID.
       summary: Update vehicle by ID
       parameters:
       - name: id
@@ -653,11 +629,8 @@ paths:
           description: Vehicle not found
   /vehicle/zone/{zoneId}/service-status:
     put:
-      description: 'Dynamically halt, suspend, or resume public transport services
-        across an entire zone. Critical for emergency response (e.g., suspending bus
-        service in Z-CENTRO due to severe flooding or traffic gridlock).
-
-        '
+      description: |
+        Dynamically halt, suspend, or resume public transport services across an entire zone. Critical for emergency response (e.g., suspending bus service in Z-CENTRO due to severe flooding or traffic gridlock).
       summary: Update transit service status for a zone
       parameters:
       - name: zoneId
@@ -681,12 +654,10 @@ paths:
                   - in-service
                   - suspended
                   - delayed
-                  description: The new status to apply to all transit vehicles in
-                    this zone
+                  description: The new status to apply to all transit vehicles in this zone
                 reason:
                   type: string
-                  description: Reason for the service change (e.g., SEVERE_WEATHER,
-                    EMERGENCY, TRAFFIC_GRIDLOCK)
+                  description: Reason for the service change (e.g., SEVERE_WEATHER, EMERGENCY, TRAFFIC_GRIDLOCK)
             examples:
               suspend_service:
                 value:

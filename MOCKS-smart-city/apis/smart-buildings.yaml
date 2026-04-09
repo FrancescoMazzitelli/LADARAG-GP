@@ -2,14 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Buildings API
   version: '1.0'
-  description: 'API for managing building data and facilities in the city. Supports
-    creation, lookup, update, and deletion of building entries, including occupancy,
-    energy usage, CO2 emissions, and structural metadata. Supports filtering by standardized
-    city zones (zoneId), building type, and operational status, enabling cross-domain
-    orchestration such as identifying high energy-consumption buildings in a zone
-    with active pollution alerts, or finding evacuated buildings during emergencies.
-
-    '
+  description: |
+    API for managing building data and facilities in the city. Supports creation, lookup, update, and deletion of building entries, including occupancy, energy usage, CO2 emissions, and structural metadata. Supports filtering by standardized city zones (zoneId), building type, and operational status, enabling cross-domain orchestration such as identifying high energy-consumption buildings in a zone with active pollution alerts, or finding evacuated buildings during emergencies.
   contact:
     name: Smart City Development Team
 servers:
@@ -102,8 +96,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart Buildings API service
-        is running and responsive.
+      description: Health check endpoint to verify that the Smart Buildings API service is running and responsive.
       summary: Health check
       responses:
         '200':
@@ -117,17 +110,11 @@ paths:
                   value: {}
   /building:
     get:
-      description: 'Retrieve the list of registered city buildings. Use query parameters
-        to filter by zone, building type, or operational status - for example, to
-        find all healthcare buildings in Z-NORD, or all evacuated buildings during
-        an emergency, or all buildings currently in maintenance.
-
-        '
+      description: Retrieve the list of registered city buildings. Use query parameters to filter by zone, building type, or operational status - for example, to find all healthcare buildings in Z-NORD, or all evacuated buildings during an emergency, or all buildings currently in maintenance.
       summary: Search buildings
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "status",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "status", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query

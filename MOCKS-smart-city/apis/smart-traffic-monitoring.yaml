@@ -2,14 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Traffic and Road Monitoring API
   version: '1.0'
-  description: 'API for managing traffic flows, detecting incidents, and enforcing
-    road regulations across the city. Compatible with cross-domain orchestration:
-    use this service to query congestion levels in specific zones (zoneId), filter
-    active incidents, or act as an actuator (e.g., dynamically lowering speed limits
-    in response to pollution alerts from the Sensors API). Supports filtering by zone,
-    congestion level, incident status, and sensor activity.
-
-    '
+  description: |
+    API for managing traffic flows, detecting incidents, and enforcing road regulations across the city. Compatible with cross-domain orchestration: use this service to query congestion levels in specific zones (zoneId), filter active incidents, or act as an actuator (e.g., dynamically lowering speed limits in response to pollution alerts from the Sensors API). Supports filtering by zone, congestion level, incident status, and sensor activity.
   contact:
     name: Smart City Development Team
 servers:
@@ -54,8 +48,7 @@ components:
           description: Whether the sensor is currently active and transmitting data
         speedLimit:
           type: integer
-          description: Current legal speed limit enforced at the sensor location in
-            km/h
+          description: Current legal speed limit enforced at the sensor location in km/h
         averageSpeed:
           type: number
           format: float
@@ -73,8 +66,7 @@ components:
           description: Current congestion level detected by the sensor
         incidentDetected:
           type: boolean
-          description: True if a traffic incident (crash, stalled vehicle) has been
-            detected
+          description: True if a traffic incident (crash, stalled vehicle) has been detected
         lastUpdated:
           type: string
           format: date-time
@@ -92,8 +84,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart Traffic Monitoring
-        microservice is reachable and responsive.
+      description: Health check endpoint to verify that the Smart Traffic Monitoring microservice is reachable and responsive.
       summary: Health check endpoint
       responses:
         '200':
@@ -107,18 +98,11 @@ paths:
                   value: {}
   /traffic-sensor:
     get:
-      description: 'Retrieve traffic sensors deployed across the city. Use query parameters
-        to filter by zone, congestion level, incident status, or sensor activity -
-        for example to find all active sensors with critical congestion in Z-CENTRO,
-        or all sensors currently detecting an incident, or all inactive sensors for
-        maintenance.
-
-        '
+      description: Retrieve traffic sensors deployed across the city. Use query parameters to filter by zone, congestion level, incident status, or sensor activity - for example to find all active sensors with critical congestion in Z-CENTRO, or all sensors currently detecting an incident, or all inactive sensors for maintenance.
       summary: Search traffic sensors
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "incidentDetected",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "congestionLevel", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
@@ -137,8 +121,7 @@ paths:
           - medium
           - high
           - critical
-        description: Filter by congestion level (e.g., high or critical to find congested
-          areas)
+        description: Filter by congestion level (e.g., high or critical to find congested areas)
         examples:
           by_congestion_high:
             value: high
@@ -148,8 +131,7 @@ paths:
         in: query
         schema:
           type: boolean
-        description: Filter sensors where an incident is currently active (true =
-          only incident locations)
+        description: Filter sensors where an incident is currently active (true = only incident locations)
         examples:
           incidents_only:
             value: true
@@ -157,8 +139,7 @@ paths:
         in: query
         schema:
           type: boolean
-        description: Filter by sensor operational status (true = only active sensors,
-          false = offline/inactive)
+        description: Filter by sensor operational status (true = only active sensors, false = offline/inactive)
         examples:
           active_only:
             value: true
@@ -437,8 +418,7 @@ paths:
                     incidentDetected: true
                     lastUpdated: '2025-09-25T11:00:00Z'
     post:
-      description: Register a new traffic monitoring sensor in the city traffic control
-        system.
+      description: Register a new traffic monitoring sensor in the city traffic control system.
       summary: Register new traffic sensor
       requestBody:
         required: true
@@ -585,12 +565,8 @@ paths:
           description: Traffic sensor not found
   /traffic-sensor/zone/{zoneId}/speed-limit:
     put:
-      description: 'Dynamically enforce a new speed limit on digital road signs for
-        an entire city zone. Use this to react to environmental hazards (high pollution,
-        frost warning) or traffic congestion detected by sensors or the Intelligence
-        API.
-
-        '
+      description: |
+        Dynamically enforce a new speed limit on digital road signs for an entire city zone. Use this to react to environmental hazards (high pollution, frost warning) or traffic congestion detected by sensors or the Intelligence API.
       summary: Update speed limit for an entire zone
       parameters:
       - name: zoneId
@@ -613,8 +589,7 @@ paths:
                   description: New speed limit in km/h to enforce across the zone
                 reason:
                   type: string
-                  description: Reason for the change (e.g., HIGH_POLLUTION, INCIDENT_DETECTED,
-                    FOG_WARNING)
+                  description: Reason for the change (e.g., HIGH_POLLUTION, INCIDENT_DETECTED, FOG_WARNING)
             examples:
               pollution_limit:
                 value:

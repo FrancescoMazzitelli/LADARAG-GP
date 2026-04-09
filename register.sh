@@ -26,12 +26,17 @@ for api_file in "$APIS_DIR"/*.yaml; do
   echo "Debug: register_url='$register_url'"
 
   # Effettuiamo la chiamata POST
-  response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$register_url")
+  response_body_file="/tmp/register_response.json"
+  response=$(curl -sS -o "$response_body_file" -w "%{http_code}" -X POST "$register_url")
 
   if [ "$response" -eq 200 ] || [ "$response" -eq 201 ]; then
     echo "✅ POST /register successful for $raw_title"
   else
     echo "❌ POST /register failed for $raw_title — HTTP $response"
+    if [ -s "$response_body_file" ]; then
+      echo "Response body:"
+      cat "$response_body_file"
+    fi
   fi
 
   echo "-----------------------------------"

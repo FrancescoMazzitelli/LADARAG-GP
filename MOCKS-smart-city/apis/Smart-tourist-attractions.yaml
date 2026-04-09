@@ -2,15 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Tourist Attractions API
   version: '1.0'
-  description: 'Smart Tourist Attractions API for managing, monitoring, and providing
-    real-time data on city landmarks, museums, and historical sites. Designed for
-    cross-domain orchestration: supports filtering by standardized city zones (zoneId),
-    category, operational status, and accessibility requirements. Allows automated
-    emergency responses such as temporarily closing all attractions in a specific
-    zone due to severe weather or traffic gridlock. Supports accessibility-aware queries
-    to find wheelchair-friendly attractions with short wait times.
-
-    '
+  description: |
+    Smart Tourist Attractions API for managing, monitoring, and providing real-time data on city landmarks, museums, and historical sites. Designed for cross-domain orchestration: supports filtering by standardized city zones (zoneId), category, operational status, and accessibility requirements. Allows automated emergency responses such as temporarily closing all attractions in a specific zone due to severe weather or traffic gridlock. Supports accessibility-aware queries to find wheelchair-friendly attractions with short wait times.
   contact:
     name: Smart City Development Team
 servers:
@@ -38,8 +31,7 @@ components:
           id:
             type: integer
             format: int64
-            description: Unique, auto-generated database identifier for the tourist
-              attraction.
+            description: Unique, auto-generated database identifier for the tourist attraction.
         required:
         - id
     NewAttraction:
@@ -47,8 +39,7 @@ components:
       properties:
         zoneId:
           type: string
-          description: Standardized city zone identifier where the attraction is located
-            (e.g., Z-CENTRO, Z-NORD)
+          description: Standardized city zone identifier where the attraction is located (e.g., Z-CENTRO, Z-NORD)
         name:
           type: string
           description: Official name of the historical site, museum, or point of interest.
@@ -76,8 +67,7 @@ components:
         ticketPriceEur:
           type: number
           format: float
-          description: Standard adult admission price in EUR. A value of 0.0 indicates
-            free entry.
+          description: Standard adult admission price in EUR. A value of 0.0 indicates free entry.
         currentVisitors:
           type: integer
           description: Real-time count of visitors currently inside the premises.
@@ -86,18 +76,15 @@ components:
           description: Maximum allowed simultaneous occupancy.
         waitingTimeMinutes:
           type: integer
-          description: Estimated queue wait time in minutes based on current crowd
-            density.
+          description: Estimated queue wait time in minutes based on current crowd density.
         wheelchairAccessible:
           type: boolean
-          description: True if the attraction features ramps, elevators, or paths
-            suitable for mobility-impaired visitors.
+          description: True if the attraction features ramps, elevators, or paths suitable for mobility-impaired visitors.
         availableLanguages:
           type: array
           items:
             type: string
-          description: List of ISO 639-1 language codes for available guided tours
-            or audio guides (e.g., ['it', 'en']).
+          description: List of ISO 639-1 language codes for available guided tours or audio guides (e.g., ['it', 'en']).
         status:
           type: string
           enum:
@@ -128,8 +115,7 @@ components:
 paths:
   /health:
     get:
-      description: Performs a lightweight health check to verify that the Tourist
-        Attractions microservice is fully operational and responsive.
+      description: Performs a lightweight health check to verify that the Tourist Attractions microservice is fully operational and responsive.
       summary: Health check endpoint
       responses:
         '200':
@@ -143,17 +129,11 @@ paths:
                   value: {}
   /attraction:
     get:
-      description: 'Retrieves a catalog of tourist attractions in the city. Use query
-        parameters to filter by zone, category, operational status, or accessibility
-        - for example to find all open museums in Z-CENTRO, all wheelchair-accessible
-        attractions, or all currently closed sites during an emergency.
-
-        '
+      description: Retrieves a catalog of tourist attractions in the city. Use query parameters to filter by zone, category, operational status, or accessibility - for example to find all open museums in Z-CENTRO, all wheelchair-accessible attractions, or all currently closed sites during an emergency.
       summary: Search tourist attractions
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "status",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "status", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
@@ -199,11 +179,8 @@ paths:
         in: query
         schema:
           type: boolean
-        description: 'Filter by accessibility - use true to find only attractions
-          suitable for visitors with mobility impairments (ramps, elevators, accessible
-          paths)
-
-          '
+        description: |
+          Filter by accessibility - use true to find only attractions suitable for visitors with mobility impairments (ramps, elevators, accessible paths)
         examples:
           accessible_only:
             value: true
@@ -837,8 +814,7 @@ paths:
                     status: temporarily_closed
                     lastUpdated: '2026-03-09T08:00:00Z'
     post:
-      description: Registers a newly monitored tourist attraction into the city's
-        tourism ecosystem.
+      description: Registers a newly monitored tourist attraction into the city's tourism ecosystem.
       summary: Register new tourist attraction
       requestBody:
         required: true
@@ -894,8 +870,7 @@ paths:
                     lastUpdated: '2026-03-09T10:00:00Z'
   /attraction/{id}:
     get:
-      description: Fetches the real-time details and telemetry of a specific tourist
-        attraction using its unique ID.
+      description: Fetches the real-time details and telemetry of a specific tourist attraction using its unique ID.
       summary: Get tourist attraction details by ID
       parameters:
       - name: id
@@ -938,8 +913,7 @@ paths:
         '404':
           description: The specified attraction ID does not exist in the database.
     put:
-      description: Updates the real-time data of an attraction (e.g., visitor counts,
-        wait times, or status).
+      description: Updates the real-time data of an attraction (e.g., visitor counts, wait times, or status).
       summary: Update tourist attraction by ID
       parameters:
       - name: id
@@ -1025,11 +999,8 @@ paths:
           description: The specified attraction ID was not found.
   /attraction/zone/{zoneId}/status:
     put:
-      description: 'Dynamically update the operational status of all tourist attractions
-        in a specific zone. Extremely useful for emergency evacuations, severe weather
-        closures, or city-wide special events.
-
-        '
+      description: |
+        Dynamically update the operational status of all tourist attractions in a specific zone. Extremely useful for emergency evacuations, severe weather closures, or city-wide special events.
       summary: Set status for all attractions in a zone
       parameters:
       - name: zoneId
@@ -1054,12 +1025,10 @@ paths:
                   - closed
                   - temporarily_closed
                   - special_event
-                  description: The new operational status to apply to all attractions
-                    in the zone
+                  description: The new operational status to apply to all attractions in the zone
                 reason:
                   type: string
-                  description: Reason for the mass status update (e.g., SEVERE_WEATHER,
-                    SECURITY_THREAT)
+                  description: Reason for the mass status update (e.g., SEVERE_WEATHER, SECURITY_THREAT)
             examples:
               emergency_closure:
                 value:

@@ -2,14 +2,8 @@ openapi: 3.0.2
 info:
   title: Smart Charging Stations API
   version: '1.0'
-  description: 'API for managing EV charging infrastructure across the city. Supports
-    creation, lookup, update, and deletion of charging stations, including real-time
-    availability, active connectors, power output, and pricing. Supports filtering
-    by standardized city zones (zoneId), availability, and charging speed, enabling
-    cross-domain orchestration such as finding a rapid charger in a zone with low
-    traffic congestion or near a tourist attraction.
-
-    '
+  description: |
+    API for managing EV charging infrastructure across the city. Supports creation, lookup, update, and deletion of charging stations, including real-time availability, active connectors, power output, and pricing. Supports filtering by standardized city zones (zoneId), availability, and charging speed, enabling cross-domain orchestration such as finding a rapid charger in a zone with low traffic congestion or near a tourist attraction.
   contact:
     name: Smart City Development Team
 servers:
@@ -95,8 +89,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart Charging Stations
-        microservice is reachable and responsive.
+      description: Health check endpoint to verify that the Smart Charging Stations microservice is reachable and responsive.
       summary: Health check
       responses:
         '200':
@@ -110,17 +103,11 @@ paths:
                   value: {}
   /charging-station:
     get:
-      description: 'Retrieve EV charging stations registered in the city. Use query
-        parameters to filter by zone, availability, or charging speed - for example,
-        to find all available rapid chargers in Z-CENTRO, or all stations in a specific
-        zone for mobility planning and EV route optimization.
-
-        '
+      description: Retrieve EV charging stations registered in the city. Use query parameters to filter by zone, availability, or charging speed - for example, to find all available rapid chargers in Z-CENTRO, or all stations in a specific zone for mobility planning and EV route optimization.
       summary: Search charging stations
       x-microcks-operation:
         dispatcher: FALLBACK
-        dispatcherRules: '{"dispatcher": "QUERY_MATCH", "dispatcherRules": "available",
-          "fallback": "example_list"}'
+        dispatcherRules: '{"dispatcher": "URI_PARAMS", "dispatcherRules": "available", "fallback": "example_list"}'
       parameters:
       - name: zoneId
         in: query
@@ -134,8 +121,7 @@ paths:
         in: query
         schema:
           type: boolean
-        description: Filter only stations with at least one free connector (true =
-          available only)
+        description: Filter only stations with at least one free connector (true = available only)
         examples:
           available_true:
             value: true
@@ -636,8 +622,7 @@ paths:
                     status: operational
   /charging-station/{id}:
     get:
-      description: Retrieve the current status of a specific EV charging station by
-        ID.
+      description: Retrieve the current status of a specific EV charging station by ID.
       summary: Get charging station details by ID
       parameters:
       - name: id
@@ -672,8 +657,7 @@ paths:
         '404':
           description: Charging station not found
     put:
-      description: Update the status or configuration of a specific EV charging station
-        by ID.
+      description: Update the status or configuration of a specific EV charging station by ID.
       summary: Update charging station details by ID
       parameters:
       - name: id

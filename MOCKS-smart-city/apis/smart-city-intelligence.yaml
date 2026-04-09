@@ -2,20 +2,16 @@ openapi: 3.0.2
 info:
   title: Smart City Intelligence API
   version: '1.0'
-  description: "Cross-domain aggregation and goal-based intelligence service for the\
-    \ Smart City platform. This service acts as a read-only intelligence layer that\
-    \ joins real-time data from multiple microservices to answer composite queries\
-    \ that cannot be resolved through sequential API chaining alone - where results\
-    \ from one domain must be filtered, ranked, or combined with results from other\
-    \ domains before a meaningful answer can be returned.\nDesigned for five families\
-    \ of orchestration scenarios:\n  1. Safety & Alerts      - unified view of all\
-    \ active city alerts across domains\n  2. Zone Pulse           - full real-time\
-    \ snapshot of a city zone across all services\n  3. Mobility Planning    - goal-based\
-    \ parking and EV charging recommendations\n  4. Tourist Experience   - attraction\
-    \ recommendations combining crowds, air quality and accessibility\n  5. Urban\
-    \ Maintenance    - aggregated view of infrastructure items requiring urgent attention\n\
-    \nAll endpoints are read-only (GET). Write operations must target the individual\
-    \ domain services.\n"
+  description: |
+    Cross-domain aggregation and goal-based intelligence service for the Smart City platform. This service acts as a read-only intelligence layer that joins real-time data from multiple microservices to answer composite queries that cannot be resolved through sequential API chaining alone - where results from one domain must be filtered, ranked, or combined with results from other domains before a meaningful answer can be returned.
+    Designed for five families of orchestration scenarios:
+      1. Safety & Alerts      - unified view of all active city alerts across domains
+      2. Zone Pulse           - full real-time snapshot of a city zone across all services
+      3. Mobility Planning    - goal-based parking and EV charging recommendations
+      4. Tourist Experience   - attraction recommendations combining crowds, air quality and accessibility
+      5. Urban Maintenance    - aggregated view of infrastructure items requiring urgent attention
+
+    All endpoints are read-only (GET). Write operations must target the individual domain services.
   contact:
     name: Smart City Development Team
 servers:
@@ -224,8 +220,7 @@ components:
 paths:
   /health:
     get:
-      description: Health check endpoint to verify that the Smart City Intelligence
-        service is reachable and responsive.
+      description: Health check endpoint to verify that the Smart City Intelligence service is reachable and responsive.
       summary: Health check
       x-microcks-operation:
         dispatcher: RANDOM
@@ -241,12 +236,7 @@ paths:
                   value: {}
   /city/alerts:
     get:
-      description: 'Aggregates all active alerts across all city domains into a single
-        unified response. Combines active sensor alerts, traffic incidents, and emergency
-        units currently responding. Use ?zoneId= to restrict to a specific zone, ?severity=
-        for minimum severity level.
-
-        '
+      description: Aggregates all active alerts across all city domains into a single unified response. Combines active sensor alerts, traffic incidents, and emergency units currently responding. Use ?zoneId= to restrict to a specific zone, ?severity= for minimum severity level.
       summary: Get all active city alerts across all domains
       x-microcks-operation:
         dispatcher: RANDOM
@@ -328,11 +318,8 @@ paths:
                     totalAlerts: 0
   /city/zone/{zoneId}/pulse:
     get:
-      description: 'Returns a full real-time snapshot of a specific city zone aggregating
-        data from all domain services: parking, traffic, air quality, attractions,
-        transport, and active alerts. Returns a composite liveability score (0-100).
-
-        '
+      description: |
+        Returns a full real-time snapshot of a specific city zone aggregating data from all domain services: parking, traffic, air quality, attractions, transport, and active alerts. Returns a composite liveability score (0-100).
       summary: Get real-time zone pulse across all domains
       x-microcks-operation:
         dispatcher: RANDOM
@@ -379,12 +366,8 @@ paths:
                     overallScore: 18.0
   /city/mobility/best-parking:
     get:
-      description: 'Finds and ranks available parking spots based on proximity to
-        a target zone, traffic conditions, spot type, and price. Resolves queries
-        like "find parking near the museum with low traffic" or "find a disabled parking
-        spot in Z-CENTRO" without multi-step chaining.
-
-        '
+      description: |
+        Finds and ranks available parking spots based on proximity to a target zone, traffic conditions, spot type, and price. Resolves queries like "find parking near the museum with low traffic" or "find a disabled parking spot in Z-CENTRO" without multi-step chaining.
       summary: Find best available parking for a goal
       x-microcks-operation:
         dispatcher: RANDOM
@@ -463,11 +446,8 @@ paths:
                   value: []
   /city/mobility/best-charging:
     get:
-      description: 'Finds and ranks available EV charging stations based on proximity
-        to a target zone, required charging speed, and price. Resolves queries like
-        "find a rapid charger near the historic center".
-
-        '
+      description: |
+        Finds and ranks available EV charging stations based on proximity to a target zone, required charging speed, and price. Resolves queries like "find a rapid charger near the historic center".
       summary: Find best available EV charging station for a goal
       x-microcks-operation:
         dispatcher: RANDOM
@@ -531,12 +511,8 @@ paths:
                     score: 71.0
   /city/tourism/best-attraction:
     get:
-      description: 'Recommends tourist attractions based on real-time conditions:
-        crowd levels, wait times, accessibility requirements, ticket price, category,
-        and environmental quality in the attraction zone. Resolves queries like "which
-        attraction has the shortest wait right now?".
-
-        '
+      description: |
+        Recommends tourist attractions based on real-time conditions: crowd levels, wait times, accessibility requirements, ticket price, category, and environmental quality in the attraction zone. Resolves queries like "which attraction has the shortest wait right now?".
       summary: Recommend the best attraction to visit right now
       x-microcks-operation:
         dispatcher: RANDOM
@@ -545,8 +521,7 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter by attraction category (e.g., museum, archaeological,
-          park)
+        description: Filter by attraction category (e.g., museum, archaeological, park)
         examples:
           museum:
             value: museum
@@ -578,8 +553,7 @@ paths:
         in: query
         schema:
           type: boolean
-        description: If true, exclude attractions in zones with active air quality
-          alerts
+        description: If true, exclude attractions in zones with active air quality alerts
         examples:
           clean_air:
             value: true
@@ -625,11 +599,8 @@ paths:
                   value: []
   /city/maintenance/urgent:
     get:
-      description: 'Aggregates urgent maintenance needs across all city infrastructure
-        domains: overflowing bins, malfunctioning lights, offline sensors, buildings
-        in maintenance or evacuated status, and open unresolved citizen reports.
-
-        '
+      description: |
+        Aggregates urgent maintenance needs across all city infrastructure domains: overflowing bins, malfunctioning lights, offline sensors, buildings in maintenance or evacuated status, and open unresolved citizen reports.
       summary: Get all infrastructure items requiring urgent attention
       x-microcks-operation:
         dispatcher: RANDOM
