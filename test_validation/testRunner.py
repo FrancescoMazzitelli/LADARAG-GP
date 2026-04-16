@@ -4,15 +4,12 @@ testRunner.py  (v3)
 Test runner per LADARAG-Extended con oracle multi-dimensionale e multiple run.
 
 Modifiche rispetto a v2:
-  - Fix bug matching path con parametri OpenAPI ({zoneId}, {countryCode}, ecc.)
-    check_layer1_plan usava endswith() che non gestiva i placeholder.
-    Ora usa _oracle_path_matches() con regex per supportare {param} nel oracle.
-  - infer_category rileva query verso la Smart City Intelligence API
-    (/city/alerts, /city/zone/{zoneId}/pulse, ecc.) e le classifica come
-    "intelligence" invece di "single-get".
-  - DEFAULTS["csv_file"] aggiornato a smart_city_goal_oriented_requests.csv.
-  - Aggiunto argomento --only-csv-categories per filtrare per colonna Category
-    del CSV (indipendente dalla categoria inferita dal oracle).
+    - Fix bug matching path con parametri OpenAPI ({zoneId}, {countryCode}, ecc.)
+        check_layer1_plan usava endswith() che non gestiva i placeholder.
+        Ora usa _oracle_path_matches() con regex per supportare {param} nel oracle.
+    - DEFAULTS["csv_file"] aggiornato a smart_city_goal_oriented_requests.csv.
+    - Aggiunto argomento --only-csv-categories per filtrare per colonna Category
+        del CSV (indipendente dalla categoria inferita dal oracle).
 
 Oracle a 4 layer:
   L1 — Plan:      METHOD + path corretti (con supporto {param} nel oracle)
@@ -30,13 +27,13 @@ Run per categoria (default adattivo):
   single-get / single-delete  → 1 run
   single-post / single-put    → 2 run
   chaining / cross-service    → 3 run
-  three-step / intelligence   → 3 run
+    three-step                  → 3 run
 
 Uso:
     python testRunner.py
     python testRunner.py --csv smart_city_goal_oriented_requests.csv
     python testRunner.py --runs 5
-    python testRunner.py --only-categories cross-service intelligence
+    python testRunner.py --only-categories cross-service
     python testRunner.py --only-csv-categories two-service three-service
     python testRunner.py --fail-fast
     python testRunner.py --control-url http://localhost:5500
@@ -65,7 +62,7 @@ from datetime import datetime
 DEFAULTS = {
     "control_url": "http://localhost:5500/api/control/invoke",
     "csv_file":    "test_validation/smart_city_test_requests.csv",  # ← AGGIORNATO
-    "output_dir":  ".",
+    "output_dir":  "C:\\Universita\\Tesi\\LADARAG-Extended-Rita\\test_validation\\risultati_test",
     "timeout":     90,
     "delay":       0.3,
     "runs":        None,   # None = adattivo per categoria
@@ -83,18 +80,8 @@ RUNS_BY_CATEGORY = {
     "two-step":          2,
     "three-step":        3,
     "cross-service":     3,
-    "intelligence":      3,   # ← AGGIUNTO: Intelligence API richiede più run
 }
 DEFAULT_RUNS = 2
-
-# Percorsi delle API della Smart City Intelligence — usati da infer_category
-_INTELLIGENCE_PATHS = {
-    "/city/alerts",
-    "/city/maintenance/urgent",
-    "/city/tourism/best-attraction",
-    "/city/mobility/best-parking",
-    "/city/mobility/best-charging",
-}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -119,6 +106,8 @@ def parse_oracle(oracle_raw):
             method = parts[0].strip().upper()
             path   = parts[1].strip().rstrip('/')
             result.append((method, path))
+        elif len(parts) == 1:          # ← AGGIUNTO: gestisce "SQL" senza path
+            result.append((parts[0].strip().upper(), ""))
     return result
 
 
@@ -167,18 +156,6 @@ def infer_category(oracle_steps, query):
     n       = len(oracle_steps)
     methods = [m for m, _ in oracle_steps]
     paths   = [p for _, p in oracle_steps]
-
-    # ── AGGIUNTO v3: Intelligence API ────────────────────────────────────────
-    # Rileva se almeno un passo del oracle punta all'Intelligence API.
-    # Controlla sia path esatti (/city/alerts) sia pattern (/city/zone/.../pulse).
-    for p in paths:
-        if p in _INTELLIGENCE_PATHS:
-            return "intelligence"
-        if re.match(r'^/city/zone/[^/]+/pulse$', p) or p.startswith('/city/zone/') and p.endswith('/pulse'):
-            return "intelligence"
-        # Gestisce anche il placeholder nel oracle: /city/zone/{zoneId}/pulse
-        if '/city/zone/{' in p and p.endswith('/pulse'):
-            return "intelligence"
 
     # ── Logica originale ─────────────────────────────────────────────────────
     # Servizi diversi = risorse diverse (primo segmento del path dopo /)
@@ -805,11 +782,11 @@ def parse_args():
                    help="Forza N run per tutte le query (default: adattivo per categoria)")
     p.add_argument("--only-categories",    nargs="+", default=None, metavar="CAT",
                    help="Filtra per categoria inferita dal oracle "
-                        "(es: single-get cross-service intelligence three-step)")
+                        "(es: single-get cross-service three-step)")
     # AGGIUNTO v3: filtro per colonna Category del CSV
     p.add_argument("--only-csv-categories", nargs="+", default=None, metavar="CSV_CAT",
                    help="Filtra per colonna Category del CSV "
-                        "(es: single-goal two-service three-service intelligence)")
+                        "(es: single-goal two-service three-service)")
     p.add_argument("--only-noise",         nargs="+", default=None, metavar="NOISE",
                    help="Esegui solo query con i tipi di rumore specificati")
     p.add_argument("--fail-fast",          action="store_true")

@@ -14,6 +14,8 @@ import bson
 import json
 import signal
 import re
+import math
+import statistics
 
 from sentence_transformers import SentenceTransformer, CrossEncoder
 
@@ -73,7 +75,7 @@ def load_model():
     tokenizer = embedding_model.tokenizer
     logger.info("Embedding model loaded.")
     reranker_model = CrossEncoder(
-        model_name_or_path='cross-encoder/ms-marco-MiniLM-L-6-v2',
+        model_name_or_path='BAAI/bge-reranker-base',
         device='cpu',
         trust_remote_code=True
     )
@@ -85,9 +87,26 @@ def clean_doc(doc):
     return doc
 
 
-def embed(input):
+def embed_query(text: str) -> list:
+    """
+    Embedding per la query utente a runtime.
+    Prefisso 'query:' — Qwen3-Embedding è addestrato con asimmetria query/passage:
+    usare lo stesso prefisso per query e documenti degrada il retrieval.
+    """
     embedding = embedding_model.encode(
-        f"query: {input}", convert_to_tensor=False, normalize_embeddings=True
+        f"query: {text}", convert_to_tensor=False, normalize_embeddings=True
+    )
+    return embedding.tolist()
+
+
+def embed_passage(text: str) -> list:
+    """
+    Embedding per documenti da indicizzare (capabilities, descriptions).
+    Prefisso 'passage:' — corrisponde al ruolo dei documenti nel training
+    di Qwen3-Embedding. Da usare in tutte le fasi di indexing.
+    """
+    embedding = embedding_model.encode(
+        f"passage: {text}", convert_to_tensor=False, normalize_embeddings=True
     )
     return embedding.tolist()
 
@@ -95,6 +114,28 @@ def embed(input):
 def count_tokens(text):
     tokens = tokenizer.encode(text, add_special_tokens=True)
     return len(tokens)
+
+
+def select_stage1_text(doc: dict) -> tuple[str, str]:
+    """
+    Seleziona il testo per l'indice Stage 1 con la seguente priorità:
+      1) description + generated_description concatenate (se entrambe presenti)
+      2) description da sola (se lunga almeno 100 caratteri)
+      3) generated_description da sola (fallback)
+      4) description corta da sola (ultimo fallback)
+    """
+    description = (doc.get("description") or "").strip()
+    generated   = (doc.get("generated_description") or "").strip()
+
+    if description and generated:
+        return f"{description} {generated}", "description+generated"
+    if len(description) >= 100:
+        return description, "description"
+    if generated:
+        return generated, "generated_description"
+    if description:
+        return description, "description"
+    return "", "none"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -164,7 +205,7 @@ def init_model():
 
 def embed_item(args):
     doc_id, key, text = args
-    vector    = model.encode(f"query: {text}", normalize_embeddings=True)
+    vector    = model.encode(f"passage: {text}", normalize_embeddings=True)
     vector_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, text))
     return PointStruct(
         id=vector_id,
@@ -215,17 +256,18 @@ def vector_search():
       La description cattura il contesto cross-domain del servizio.
       → alta recall: trova i servizi giusti anche per query composte
 
-    Stage 2 — Cross-encoder su capabilities (reranker BAAI/bge-reranker-v2-m3):
+    Stage 2 — Cross-encoder su capabilities (reranker BAAI/bge-reranker-base):
       Per ogni servizio recuperato nel Stage 1, carica TUTTI i suoi endpoint
       da MongoDB e li rerankerizza con il CrossEncoder.
       Mantiene sempre i top-N endpoint per score (senza soglia minima).
       → bilanciamento recall/precision costante per ogni servizio selezionato
 
-    Scoring composito (NUOVO):
-      Combina s1_score (rilevanza description) e ep_score normalizzato
-      (rilevanza endpoint) in un unico punteggio per ordinamento e filtraggio.
-      Evita che servizi con ep_score vicino a zero ma s1_score alto
-      vengano scartati anche quando sono semanticamente necessari.
+    Scoring composito:
+      Combina s1_score (rilevanza description) e ep_norm (sigmoid dello z-score
+      del best endpoint score) in un unico punteggio per ordinamento e filtraggio.
+      Lo z-score normalizza rispetto alla distribuzione degli ep_score del batch,
+      evitando che un outlier dominante azzeri i servizi con ep_score basso assoluto
+      ma semanticamente necessari (es. traffico come precondizione implicita).
 
     Token budget con trimming graceful (NUOVO):
       Invece di scartare un intero servizio quando non entra nel budget,
@@ -237,24 +279,23 @@ def vector_search():
         return jsonify({"error": "Missing 'query' field"}), 400
 
     query_text      = data["query"]
-    query_embedding = embed(query_text)
+    query_embedding = embed_query(query_text)
 
     # ── Parametri two-stage ───────────────────────────────────────────────────
-    STAGE1_K                  = 5
-    TOP_ENDPOINTS_PER_SERVICE = 5
-    INTELLIGENCE_ID           = "smart-city-intelligence-mock"
-    MIN_SCORE_INTELLIGENCE    = 0.60
+    STAGE1_K                  = 7
+    TOP_ENDPOINTS_PER_SERVICE = 4
 
     # ── Parametri scoring composito ──────────────────────────────────────────
     # ALPHA: peso del s1_score (rilevanza semantica della description)
-    # BETA:  peso dell'ep_score normalizzato (rilevanza dell'endpoint migliore)
+    # BETA:  peso dell'ep_norm (sigmoid dello z-score del best endpoint score)
     # MIN_COMBINED_SCORE: soglia sotto cui un servizio viene scartato.
-    #   Calibrata sui dati reali: sensors (necessario) ha combined ~0.19,
-    #   buildings (falso positivo) ha combined ~0.15. Soglia a 0.16 taglia
-    #   i falsi positivi puri mantenendo i servizi semanticamente rilevanti.
+    #   Con sigmoid, un servizio nella media ottiene ep_norm≈0.5 e combined≈0.53
+    #   (assumendo s1≈0.60). Soglia a 0.40 taglia i falsi positivi mantenendo
+    #   i servizi semanticamente rilevanti. Da ricalibrarare empiricamente
+    #   dopo le prime run loggando i combined score reali.
     ALPHA              = 0.3
     BETA               = 0.7
-    MIN_COMBINED_SCORE = 0.16
+    MIN_COMBINED_SCORE = 0.40
 
     # ════════════════════════════════════════════════════════════════════════
     # STAGE 1: recupero servizi per similarità sulla description
@@ -292,10 +333,6 @@ def vector_search():
     # ── Fase 2a: carica tutti i servizi da MongoDB ───────────────────────────
     services_data = {}
     for doc_id, s1_score in stage1_scores.items():
-
-        if doc_id == INTELLIGENCE_ID and s1_score < MIN_SCORE_INTELLIGENCE:
-            logger.info(f"[STAGE 1] {doc_id} escluso: score {s1_score:.3f} < {MIN_SCORE_INTELLIGENCE}")
-            continue
 
         retrieved = collection.find_one({"_id": doc_id})
         if not retrieved:
@@ -365,14 +402,35 @@ def vector_search():
         parameters   = sdata["parameters"]
         ops          = sdata["ops"]
 
+        # ── HEURISTIC: Virtual boost per GET list endpoints ───────────────────
+        # I GET senza path parameter (es. GET /charging-station, GET /sensor)
+        # sono gli unici endpoint che permettono di listare le risorse.
+        # Con BGE reranker possono essere superati da CRUD endpoint (DELETE,
+        # POST, PUT) che matchano meglio la query lessicalmente ma sono
+        # inutili per il piano di orchestrazione.
+        # Il boost è puramente ordinale: alza i GET list in cima allo slice
+        # senza alterare il best_endpoint_score usato per lo z-score.
+        # /health è escluso: è un GET senza placeholder ma non porta dati utili.
+        GET_LIST_BOOST = 5.0
+
+        def sorting_heuristic(op_score_tuple):
+            op_name, original_score = op_score_tuple
+            is_get_list = (op_name.startswith("GET ")
+                           and "{" not in op_name
+                           and not op_name.endswith("/health"))
+            return original_score + (GET_LIST_BOOST if is_get_list else 0.0)
+
         scored_ops = sorted(
             [(op, scores_by_service[doc_id][op]) for op in ops],
-            key=lambda x: x[1],
+            key=sorting_heuristic,
             reverse=True
         )
 
-        relevant_ops        = scored_ops[:TOP_ENDPOINTS_PER_SERVICE]
-        best_endpoint_score = relevant_ops[0][1]
+        relevant_ops = scored_ops[:TOP_ENDPOINTS_PER_SERVICE]
+
+        # Best score semantico reale — usa max() sui grezzi, NON relevant_ops[0]
+        # che potrebbe essere drogato dal boost e corrompere lo z-score globale.
+        best_endpoint_score = max(scores_by_service[doc_id].values())
 
         merged[doc_id] = {
             "_id":              doc_id,
@@ -404,28 +462,25 @@ def vector_search():
         return jsonify({"results": []}), 200
 
     # ════════════════════════════════════════════════════════════════════════
-    # SCORING COMPOSITO: combina s1_score e ep_score normalizzato
+    # SCORING COMPOSITO: combina s1_score e ep_norm (z-score + sigmoid)
     #
-    # Motivazione: ep_score grezzo non è calibrato in modo assoluto.
-    # Per query cross-domain, un servizio può avere s1_score alto (description
-    # semanticamente rilevante) ma ep_score vicino a zero (il CrossEncoder
-    # non trova match diretto tra query e capability text). Normalizzare
-    # ep_score rispetto al best globale e combinarlo con s1_score produce
-    # un ranking più stabile che preserva i servizi necessari anche quando
-    # il loro endpoint migliore ha score assoluto basso.
+    # Motivazione: la normalizzazione min-max azzerava i servizi con ep_score
+    # basso assoluto anche quando erano semanticamente necessari (es. traffico
+    # come precondizione implicita in "without getting stuck in traffic").
+    # Con z-score si misura la distanza dalla media della distribuzione degli
+    # ep_score: un servizio nella media ottiene z=0 → sigmoid=0.5, non viene
+    # penalizzato a 0 solo perché un altro servizio ha ep_score molto più alto.
+    # La sigmoid riconduce lo z-score in (0,1) mantenendo le scale compatibili
+    # con s1_score per la somma pesata ALPHA*s1 + BETA*ep_norm.
     # ════════════════════════════════════════════════════════════════════════
-    best_global_ep = max(
-        (v["_best_ep_score"] for v in merged.values()), default=0.0
-    )
-    min_global_ep  = min(
-        (v["_best_ep_score"] for v in merged.values()), default=0.0
-    )
-    ep_range = best_global_ep - min_global_ep
+    ep_scores = [v["_best_ep_score"] for v in merged.values()]
+    ep_mean   = statistics.mean(ep_scores)
+    ep_std    = statistics.stdev(ep_scores) if len(ep_scores) > 1 else 1.0
+    ep_std    = ep_std if ep_std > 0 else 1.0
 
     for s in merged.values():
-        # Min-max normalization: funziona anche con logit negativi (ms-marco)
-        # Il servizio migliore ottiene sempre ep_norm=1.0, il peggiore 0.0
-        ep_norm = (s["_best_ep_score"] - min_global_ep) / ep_range if ep_range > 0 else 0.0
+        z_score = (s["_best_ep_score"] - ep_mean) / ep_std
+        ep_norm = 1.0 / (1.0 + math.exp(-z_score))   # sigmoid: output in (0,1)
         s["_combined_score"] = ALPHA * s["_stage1_score"] + BETA * ep_norm
 
     # Filtra servizi sotto la soglia combinata
@@ -436,13 +491,16 @@ def vector_search():
     merged = {k: v for k, v in merged.items() if v["_combined_score"] >= MIN_COMBINED_SCORE}
 
     combined_rows = "\n    ".join(
-        f"  {sid:<50} s1={v['_stage1_score']:.4f}  ep={v['_best_ep_score']:.4f}  ep_norm={(v['_best_ep_score']-min_global_ep)/ep_range if ep_range>0 else 0:.4f}"
+        f"  {sid:<50} s1={v['_stage1_score']:.4f}  ep={v['_best_ep_score']:.4f}"
+        f"  z={((v['_best_ep_score']-ep_mean)/ep_std):.4f}"
+        f"  ep_norm={1.0/(1.0+math.exp(-((v['_best_ep_score']-ep_mean)/ep_std))):.4f}"
         f"  combined={v['_combined_score']:.4f}  "
         f"[{'PASSA' if v['_combined_score'] >= MIN_COMBINED_SCORE else 'SCARTATO'}]"
         for sid, v in sorted(merged_with_all.items(), key=lambda x: x[1]['_combined_score'], reverse=True)
     )
     logger.info(
-        f"[COMBINED_SCORE] formula: {ALPHA}*s1 + {BETA}*ep_norm(min-max) | best_ep={best_global_ep:.4f} | min_ep={min_global_ep:.4f} | soglia={MIN_COMBINED_SCORE}\n"
+        f"[COMBINED_SCORE] formula: {ALPHA}*s1 + {BETA}*sigmoid(z) | "
+        f"ep_mean={ep_mean:.4f} | ep_std={ep_std:.4f} | soglia={MIN_COMBINED_SCORE}\n"
         f"    {combined_rows}\n"
         f"    → filtrati {pre_filter_count - len(merged)}/{pre_filter_count}: {list(filtered_out.keys())}"
     )
@@ -487,7 +545,7 @@ def vector_search():
                 trimmed[k] = v
         return trimmed
 
-    max_tokens     = 3500
+    max_tokens     = 5000
     current_tokens = 0
     top_results    = []
     budget_log     = []  # (service_id, n_endpoints_inseriti, n_endpoints_totali, nomi_endpoint)
@@ -540,7 +598,7 @@ def create_or_update_service_old():
     # ── Stage 2 index: 1 vettore per endpoint (capability text) ──────────────
     capabilities = data.get("capabilities", {})
     for http_op, capability in capabilities.items():
-        embedding = embed(capability)
+        embedding = embed_passage(capability)
         vector_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, capability))
         qdrant_client.upsert(
             collection_name=QDRANT_COLLECTION,
@@ -554,10 +612,12 @@ def create_or_update_service_old():
         )
 
     # ── Stage 1 index: 1 vettore per servizio (description text) ─────────────
-    description = data.get("description", "")
-    if description:
+    # Preferisce description. Usa generated_description solo se description
+    # è assente o troppo corta (<100 caratteri).
+    text_to_index, source = select_stage1_text(data)
+    if text_to_index:
         desc_vector_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"desc:{doc_id}"))
-        desc_embedding = embed(description)
+        desc_embedding = embed_passage(text_to_index)
         qdrant_client.upsert(
             collection_name=QDRANT_COLLECTION_INDEX,
             points=[
@@ -568,7 +628,7 @@ def create_or_update_service_old():
                 )
             ]
         )
-        logger.info(f"[INDEX] Service '{doc_id}' indexed in services_index")
+        logger.info(f"[INDEX] Service '{doc_id}' indexed in services_index (fonte: {source})")
 
     collection.replace_one({"_id": doc_id}, data, upsert=True)
     return jsonify({"status": "ok", "id": doc_id}), 200
@@ -626,23 +686,25 @@ def delete_service(service_id):
 @app.route("/index/reindex", methods=["POST"])
 def reindex_descriptions():
     """
-    Reindicizza le description di tutti i servizi in MongoDB nella collezione
-    services_index (Stage 1). Necessario dopo il primo deploy o dopo aver
-    aggiunto nuovi servizi quando services_index era vuota.
+    Reindicizza i testi descrittivi di tutti i servizi in services_index (Stage 1).
+
+    Preferisce description; usa generated_description solo come fallback quando
+    description è assente o inferiore a 100 caratteri.
+    Usa embed_passage() per il corretto ruolo asimmetrico.
     """
     docs    = list(collection.find())
     indexed = 0
     skipped = 0
     for doc in docs:
-        doc_id      = doc.get("_id")
-        description = doc.get("description", "")
-        if not description:
-            logger.warning(f"[REINDEX] {doc_id}: description vuota, saltato")
+        doc_id = doc.get("_id")
+        text_to_index, source = select_stage1_text(doc)
+        if not text_to_index:
+            logger.warning(f"[REINDEX] {doc_id}: nessuna description disponibile, saltato")
             skipped += 1
             continue
         try:
             desc_vector_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"desc:{doc_id}"))
-            desc_embedding = embed(description)
+            desc_embedding = embed_passage(text_to_index)
             qdrant_client.upsert(
                 collection_name=QDRANT_COLLECTION_INDEX,
                 points=[
@@ -653,7 +715,7 @@ def reindex_descriptions():
                     )
                 ]
             )
-            logger.info(f"[REINDEX] {doc_id} indicizzato")
+            logger.info(f"[REINDEX] {doc_id} indicizzato (fonte: {source})")
             indexed += 1
         except Exception as e:
             logger.error(f"[REINDEX] {doc_id} failed: {e}")
@@ -666,7 +728,8 @@ def reindex_descriptions():
 @app.route("/services/<string:service_id>/schemas", methods=["PATCH"])
 def update_service_schemas(service_id):
     """
-    Aggiorna response_schemas, request_schemas e/o parameters di un servizio.
+    Aggiorna response_schemas, request_schemas, parameters e/o
+    generated_description di un servizio.
     Chiamato dall'api-importer dopo aver estratto gli schema con prance.
     """
     data = request.get_json()
@@ -677,6 +740,8 @@ def update_service_schemas(service_id):
         update_fields["request_schemas"] = data["request_schemas"]
     if "parameters" in data:
         update_fields["parameters"] = data["parameters"]
+    if "generated_description" in data:
+        update_fields["generated_description"] = data["generated_description"]
 
     if not update_fields:
         return jsonify({"error": "No valid schema fields provided"}), 400

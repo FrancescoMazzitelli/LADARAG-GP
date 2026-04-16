@@ -175,6 +175,12 @@ class Service:
         if not result and schema.get("type") == "array":
             items = schema.get("items", {})
 
+            # Guardia: in API esterne (apis.guru) items può essere una lista
+            # (tuple tipizzate OpenAPI 3.1) o una stringa malformata.
+            # In quei casi non possiamo scendere — restituiamo quello che abbiamo.
+            if not isinstance(items, dict):
+                return result
+
             # distingue array di oggetti complessi da array di scalari
             has_object_items = (
                 items.get("type") == "object" or
@@ -498,52 +504,118 @@ class Service:
         filename = f"{api_name_encoded}-{version}.yaml"
         return f"{mock_server_url.rstrip('/')}/api/resources/{filename}"
 
-    def _extract_schemas_from_yaml(self, swagger_url):
-            try:
-                # --- FIX UTF-8 ---
-                resp = requests.get(swagger_url)
-                resp.encoding = 'utf-8'  # Forza la decodifica dei caratteri speciali (come "—")
-                parser = prance.ResolvingParser(spec_string=resp.text, lazy=False, strict=False)
-                # -----------------
-                swagger = parser.specification
-            except Exception as e:
-                print(f"Failed to load/resolve YAML from {swagger_url}: {e}")
-                return {"response_schemas": {}, "request_schemas": {}, "parameters": {}}
+    def _generate_description(self, swagger: dict) -> str:
+        """
+        Genera una description sintetica per l'indexing Stage 1 del retrieval.
 
-            response_schemas = {}
-            request_schemas  = {}
-            parameters       = {}
+        Costruita da:
+          - Titolo dell'API (ancora semantica)
+          - Summary di ogni endpoint (testo funzionale, più denso della description)
+          - Valori enum dei parametri (vocabolario di dominio esatto)
 
-            paths = swagger.get("paths", {})
-            for path, methods in paths.items():
-                if not isinstance(methods, dict):
+        La description originale (info.description) è spesso astratta e ha
+        overlap lessicale basso con le query utente. I summary e gli enum
+        contengono invece i termini usati nelle query: "Find best available
+        parking", "spotType: standard, electric, disabled", ecc.
+
+        Viene salvata nel campo generated_description (separato da description)
+        e usata esclusivamente per l'indexing in Qdrant, non inviata all'LLM.
+        """
+        info  = swagger.get("info", {})
+        paths = swagger.get("paths", {})
+        parts = []
+
+        title = info.get("title", "").strip()
+        if title:
+            parts.append(title)
+
+        seen_summaries = set()
+        for path, methods in paths.items():
+            if not isinstance(methods, dict):
+                continue
+            for method, details in methods.items():
+                if method.lower() not in {"get", "post", "put", "delete"}:
                     continue
-                for method, details in methods.items():
-                    if method.lower() not in {"get", "post", "put", "delete"}:
+                if not isinstance(details, dict):
+                    continue
+                summary = details.get("summary", "").strip()
+                if summary and summary not in seen_summaries:
+                    parts.append(summary)
+                    seen_summaries.add(summary)
+
+        seen_params = set()
+        for path, methods in paths.items():
+            if not isinstance(methods, dict):
+                continue
+            for method, details in methods.items():
+                if not isinstance(details, dict):
+                    continue
+                for param in details.get("parameters", []):
+                    if not isinstance(param, dict):
                         continue
-                    if not isinstance(details, dict):
-                        continue
+                    schema     = param.get("schema", {})
+                    enum_vals  = schema.get("enum", [])
+                    param_name = param.get("name", "").strip()
+                    if enum_vals and param_name and param_name not in seen_params:
+                        enum_str = ", ".join(str(v) for v in enum_vals[:10])
+                        parts.append(f"{param_name}: {enum_str}")
+                        seen_params.add(param_name)
 
-                    key = f"{method.upper()} {path}"
+        if not parts:
+            return info.get("description", "").strip()
 
-                    resp_schema = self._extract_schema_from_details(details)
-                    if resp_schema:
-                        response_schemas[key] = resp_schema
+        return ". ".join(parts)
 
-                    req_schema = self._extract_request_schema_from_details(details, method)
-                    if req_schema:
-                        request_schemas[key] = req_schema
+    def _extract_schemas_from_yaml(self, swagger_url):
+        try:
+            # --- FIX UTF-8 ---
+            resp = requests.get(swagger_url)
+            resp.encoding = 'utf-8'  # Forza la decodifica dei caratteri speciali (come "—")
+            parser = prance.ResolvingParser(spec_string=resp.text, lazy=False, strict=False)
+            # -----------------
+            swagger = parser.specification
+        except Exception as e:
+            print(f"Failed to load/resolve YAML from {swagger_url}: {e}")
+            return {"response_schemas": {}, "request_schemas": {}, "parameters": {}}
 
-                    # --- NUOVA CHIAMATA PER I PARAMETRI ---
-                    params_schema = self._extract_parameters_from_details(details)
-                    if params_schema:
-                        parameters[key] = params_schema
+        response_schemas = {}
+        request_schemas  = {}
+        parameters       = {}
 
-            return {
-                "response_schemas": response_schemas, 
-                "request_schemas": request_schemas,
-                "parameters": parameters  # <--- AGGIUNTO AL RETURN
-            }
+        paths = swagger.get("paths", {})
+        for path, methods in paths.items():
+            if not isinstance(methods, dict):
+                continue
+            for method, details in methods.items():
+                if method.lower() not in {"get", "post", "put", "delete"}:
+                    continue
+                if not isinstance(details, dict):
+                    continue
+
+                key = f"{method.upper()} {path}"
+
+                resp_schema = self._extract_schema_from_details(details)
+                if resp_schema:
+                    response_schemas[key] = resp_schema
+
+                req_schema = self._extract_request_schema_from_details(details, method)
+                if req_schema:
+                    request_schemas[key] = req_schema
+
+                params_schema = self._extract_parameters_from_details(details)
+                if params_schema:
+                    parameters[key] = params_schema
+
+        # Genera la description arricchita dallo stesso swagger già parsato.
+        # Nessun secondo download — usa parser.specification già in memoria.
+        generated_description = self._generate_description(swagger)
+
+        return {
+            "response_schemas":      response_schemas,
+            "request_schemas":       request_schemas,
+            "parameters":            parameters,
+            "generated_description": generated_description,
+        }
     # -----------------------------------------------------------------------
     # Metodo principale di enrichment
     # -----------------------------------------------------------------------
@@ -585,7 +657,8 @@ class Service:
 
             # skip idempotente: non rielabora servizi già arricchiti
             # (evita di sovrascrivere schema corretti con una riesecuzione)
-            if "response_schemas" in svc and "request_schemas" in svc and "parameters" in svc:
+            if ("response_schemas" in svc and "request_schemas" in svc
+                    and "parameters" in svc and "generated_description" in svc):
                 print(f"[ENRICH] Skipping {doc_id} (already enriched)")
                 skipped += 1
                 continue
@@ -618,10 +691,11 @@ class Service:
                     timeout=10
                 )
                 patch_resp.raise_for_status()
-                n_resp = len(schemas.get("response_schemas", {}))
-                n_req  = len(schemas.get("request_schemas", {}))
+                n_resp   = len(schemas.get("response_schemas", {}))
+                n_req    = len(schemas.get("request_schemas", {}))
                 n_params = len(schemas.get("parameters", {}))
-                print(f"[ENRICH] {doc_id} → {n_resp} response, {n_req} request, {n_params} parameters saved")
+                has_desc = bool(schemas.get("generated_description"))
+                print(f"[ENRICH] {doc_id} → {n_resp} response, {n_req} request, {n_params} parameters, generated_description={'yes' if has_desc else 'no'}")
                 enriched += 1
             except Exception as e:
                 print(f"[ENRICH] Failed to update {doc_id}: {e}")
@@ -730,15 +804,16 @@ class Service:
 
         # restituisce il documento completo pronto per MongoDB
         return {
-            "id":               service,
-            "name":             service_name,
-            "description":      swagger.get("info", {}).get("description", "No description"),
-            "swagger_url":      swagger_url,
-            "capabilities":     capabilities,
-            "endpoints":        endpoints,
-            "response_schemas": response_schemas,
-            "request_schemas":  request_schemas,
-            "parameters":       parameters, # <--- AGGIUNTO AL RETURN
+            "id":                    service,
+            "name":                  service_name,
+            "description":           swagger.get("info", {}).get("description", "No description"),
+            "generated_description": self._generate_description(swagger),
+            "swagger_url":           swagger_url,
+            "capabilities":          capabilities,
+            "endpoints":             endpoints,
+            "response_schemas":      response_schemas,
+            "request_schemas":       request_schemas,
+            "parameters":            parameters,
         }
 
     def register_to_redis(self, service_name, service_status):

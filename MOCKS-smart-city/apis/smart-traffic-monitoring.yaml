@@ -606,7 +606,7 @@ paths:
           description: Traffic sensor not found
   /traffic-sensor/zone/{zoneId}/speed-limit:
     put:
-      description: Dynamically enforce a new speed limit on digital road signs for an entire city zone. Use this to react to environmental hazards (high pollution, frost warning) or traffic congestion detected by sensors or the Intelligence API.
+      description: Dynamically enforce a new speed limit on digital road signs for an entire city zone. Use this to react to environmental hazards (high pollution, frost warning) or traffic congestion detected by sensors.
       summary: Update speed limit for an entire zone
       parameters:
       - name: zoneId
