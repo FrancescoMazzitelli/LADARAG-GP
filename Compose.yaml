@@ -152,6 +152,8 @@ services:
       - QDRANT_HOST=catalog-vector
       - QDRANT_PORT=6333
       - QDRANT_COLLECTION=services
+      - OLLAMA_URL=http://192.168.250.40:15888
+      #- USE_LLM_DECOMPOSITION=true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 15s

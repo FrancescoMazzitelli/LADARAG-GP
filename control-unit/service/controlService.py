@@ -1,4 +1,5 @@
 from service.discoveryService import Discovery
+from service.designerService  import Designer
 from flask import Response
 import json
 import requests
@@ -100,6 +101,10 @@ class Controller:
 
     def __init__(self):
         self.model_name = os.environ.get("LLM_MODEL", "qwen3.5:27b")
+        # Fallback LLM per piani vuoti: classifica il motivo e, se
+        # OUT_OF_DOMAIN, propone anche un contratto API concettuale.
+        # Un'unica chiamata LLM copre entrambi i compiti (vedi designerService.py).
+        self.designer  = Designer(fallback_model=self.model_name)
         os.makedirs("Files", exist_ok=True)
 
     # ------------------------------------------------------------------
@@ -322,7 +327,7 @@ class Controller:
     def _build_system_prompt(self) -> str:
 
         # ── EXAMPLES ─────────────────────────────────────────────────────────
-        # Only 4 examples, one per structurally distinct pattern family.
+        # Five examples, one per structurally distinct pattern family.
         # Each uses a domain that will NEVER appear in production queries.
         # Each ends with a WHY comment that explains the abstract principle
         # so the model generalises to new domains rather than imitating form.
@@ -333,6 +338,7 @@ class Controller:
                 "DECOMPOSE: available books | "
                 "MAP: smart-library-mock / GET /book | "
                 "CHAIN: none | "
+                "COMBINE: single task | "
                 "FILTER: status=available (one param, catalog enum) | "
                 "VALIDATE: ✓"
             ),
@@ -353,6 +359,7 @@ class Controller:
                 "DECOMPOSE: find patient Rossi → set discharged | "
                 "MAP: smart-hospital-mock / GET /patient + PUT /patient/{id} | "
                 "CHAIN: PUT path ← get_all_patients[?surname=='Rossi'] | [0].id | "
+                "COMBINE: jmespath on get_all_patients feeds PUT url | "
                 "FILTER: surname match via JMESPath, not query param | "
                 "VALIDATE: ✓ id in path, ✓ no bare placeholders"
             ),
@@ -389,6 +396,7 @@ class Controller:
                 "DECOMPOSE: canteens near occupied halls | "
                 "MAP: smart-campus-mock / GET /lecture-hall + GET /canteen | "
                 "CHAIN: canteen?zoneIds ← get_occupied_halls[*].zoneId | join(',',@) | "
+                "COMBINE: jmespath join feeds canteen zoneIds param | "
                 "FILTER: lecture-hall → status=occupied; canteen → zoneIds param documented | "
                 "VALIDATE: ✓ join on string field, ✓ zoneIds in catalog"
             ),
@@ -419,6 +427,7 @@ class Controller:
                 "DECOMPOSE: rank warehouses by avg temp per zone | "
                 "MAP: smart-logistics-mock / GET /warehouse + GET /thermometer | "
                 "CHAIN: SQL joins both on zoneId | "
+                "COMBINE: sql join+aggregate over get_warehouses and get_thermometers | "
                 "FILTER: no query params; avg+rank → SQL | "
                 "VALIDATE: ✓ table names = task names, ✓ no {{}} in SQL"
             ),
@@ -446,16 +455,101 @@ class Controller:
                 }
             ]
         }
-        # WHY: use SQL whenever the operation is a join of two datasets, aggregation
-        # (avg/sum/count), ranking, grouping, set intersection, or set difference.
+        # WHY: use SQL whenever the final answer requires COMBINING prior task results.
+        # This includes: join of two datasets, aggregation (avg/sum/count), ranking,
+        # grouping, set intersection, and set difference (see Example E for exclusion).
+        # A plan that leaves the user with raw data from multiple GETs — when their
+        # query implies a combined answer — is incomplete.
         # Reference prior task results by their task_name directly as table names.
         # Never use {{}} placeholders inside a sql_query string.
+
+        # ── PATTERN E: two GETs → SQL set difference (exclusion language) ────
+        ex_e = {
+            "reasoning": (
+                "DECOMPOSE: available hotels | avoid noisy districts | "
+                "MAP: smart-hospitality-mock / GET /hotel + smart-acoustics-mock / GET /noise-sensor | "
+                "CHAIN: SQL set difference on districtId | "
+                "COMBINE: sql set_difference get_available_hotels minus get_noisy_sensors | "
+                "FILTER: hotel available=true; noise-sensor level=high | "
+                "VALIDATE: ✓ two GETs + terminating SQL, ✓ exclusion via NOT IN"
+            ),
+            "tasks": [
+                {
+                    "task_name":  "get_available_hotels",
+                    "service_id": "smart-hospitality-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Hospitality+API/1.0/hotel?available=true",
+                    "operation":  "GET",
+                    "input":      ""
+                },
+                {
+                    "task_name":  "get_noisy_sensors",
+                    "service_id": "smart-acoustics-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Acoustics+API/1.0/noise-sensor?level=high",
+                    "operation":  "GET",
+                    "input":      ""
+                },
+                {
+                    "task_name":  "hotels_in_quiet_districts",
+                    "service_id": "sql-processor",
+                    "url":        "",
+                    "operation":  "SQL",
+                    "input":      {"sql_query": "SELECT * FROM get_available_hotels WHERE districtId NOT IN (SELECT districtId FROM get_noisy_sensors)"}
+                }
+            ]
+        }
+
+        # WHY: when the user expresses EXCLUSION ("avoid", "without", "not near",
+        # "somewhere NOT X"), the final answer is the set difference between the
+        # primary list (what the user wants) and the secondary list (what to exclude).
+        # Always add a terminating SQL task with NOT IN — two GETs alone return both
+        # sets but leave the exclusion unresolved, so the user receives raw data
+        # instead of the filtered answer they asked for.
+
+        # ── PATTERN F: Qualitative constraint → SQL Sort (NO magic numbers) ──
+        ex_f = {
+            "reasoning": (
+                "DECOMPOSE: find the quietest apartments | "
+                "MAP: smart-real-estate-mock / GET /apartment + smart-acoustics-mock / GET /noise-sensor | "
+                "CHAIN: SQL join and rank | "
+                "COMBINE: sql join get_apartments and get_noise_sensors, order by noise | "
+                "FILTER: user asks for 'quietest' (qualitative). I MUST NOT invent a threshold like '< 40'. I will use ORDER BY decibelLevel ASC LIMIT 3 | "
+                "VALIDATE: ✓ no invented thresholds, used sorting instead"
+            ),
+            "tasks": [
+                {
+                    "task_name":  "get_apartments",
+                    "service_id": "smart-real-estate-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Real+Estate+API/1.0/apartment",
+                    "operation":  "GET",
+                    "input":      ""
+                },
+                {
+                    "task_name":  "get_noise_sensors",
+                    "service_id": "smart-acoustics-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Acoustics+API/1.0/noise-sensor",
+                    "operation":  "GET",
+                    "input":      ""
+                },
+                {
+                    "task_name":  "quietest_apartments",
+                    "service_id": "sql-processor",
+                    "url":        "",
+                    "operation":  "SQL",
+                    "input":      {"sql_query": "SELECT a.*, n.decibelLevel FROM get_apartments a JOIN get_noise_sensors n ON a.zoneId = n.zoneId ORDER BY n.decibelLevel ASC LIMIT 3"}
+                }
+            ]
+        }
+        # WHY: When the user asks for a qualitative extreme ("cleanest", "safest", "quietest", "cheapest")
+        # DO NOT invent numeric thresholds (e.g., WHERE decibelLevel < 50). 
+        # Instead, use SQL ORDER BY ... ASC or DESC with a LIMIT to find the best/worst options natively.
 
         examples_str = (
             f"EXAMPLE A — single GET with enum filter:\n{json.dumps(ex_a, indent=2)}\n\n"
             f"EXAMPLE B — GET list → JMESPath id extraction → PUT path param:\n{json.dumps(ex_b, indent=2)}\n\n"
             f"EXAMPLE C — GET with filter → collect zoneIds → multi-zone GET:\n{json.dumps(ex_c, indent=2)}\n\n"
-            f"EXAMPLE D — two GETs → SQL join/rank/aggregate:\n{json.dumps(ex_d, indent=2)}"
+            f"EXAMPLE D — two GETs → SQL join/rank/aggregate:\n{json.dumps(ex_d, indent=2)}\n\n"
+            f"EXAMPLE E — two GETs → SQL set difference (exclusion):\n{json.dumps(ex_e, indent=2)}"
+            f"EXAMPLE F — Qualitative constraint → SQL Sort (NO magic numbers):\n{json.dumps(ex_f, indent=2)}"
         )
 
         return f"""<role>
@@ -467,15 +561,16 @@ Given a user query and a service catalog, produce ONLY a valid JSON execution pl
 - Output ONLY raw JSON. Zero prose, zero markdown fences, nothing outside the JSON object.
 - Top-level schema: {{"reasoning": "string", "tasks": [...]}}
 - Every task must have exactly these five keys: task_name, service_id, url, operation, input.
-- If the query cannot be satisfied with the available services, output:
-  {{"reasoning": "No available service can fulfil this request.", "tasks": []}}
 - CONSTRAINT RULE: Before building the plan, scan the full query for constraint
   phrases ("without X", "avoiding Y", "where Z is [condition]", "near Z",
   "somewhere [adjective]"). Each constraint implies a real-time data requirement.
   Find the service in the catalog that provides that data and add a GET task for it,
   even if the user did not explicitly ask for that data.
   A plan that ignores a constraint phrase FAILS validation — add the missing task
-  before marking VALIDATE as ✓.</output_contract>
+  before marking VALIDATE as ✓.
+- If the query cannot be satisfied with the available services from the catalog, output:
+  {{"reasoning": "No available service can fulfil this request.", "tasks": []}}
+</output_contract>
 
 
 <grounding_rule> 
@@ -491,12 +586,24 @@ Use CHAIN OF DRAFT format: one line per phase, keywords only, no full sentences.
   DECOMPOSE: <what data is needed>
   MAP:       <service-id / method endpoint> for each need
   CHAIN:     <task_name[jmespath]> for each dependency, or "none"
+  COMBINE:   <how the final answer is produced — one of:
+              "single task" /
+              "jmespath on task_X" /
+              "sql join task_X and task_Y" /
+              "sql set_difference task_X minus task_Y" /
+              "sql set_intersection task_X and task_Y" /
+              "sql aggregate/rank over task_X">
   FILTER:    <which param per GET, threshold logic if any>
   VALIDATE:  ✓ / list any issue found and how it is fixed
 
 COMMIT RULE: write each phase once and move on.
 Do not use "wait", "actually", "or perhaps", "however", "but".
 If the correct interpretation is ambiguous, pick the most literal reading and commit.
+
+COMBINE CONSISTENCY: the value you write for COMBINE must match the tasks array.
+If COMBINE says "single task", there is exactly one task. If COMBINE names a SQL
+operation, the last task must be an SQL task. A plan whose tasks don't match
+the declared COMBINE strategy FAILS validation — fix it before writing the JSON.
 </reasoning_protocol>
 
 <hard_constraints>
@@ -538,15 +645,23 @@ HC-9  PARAMETER VALUES FROM CATALOG
       Example: if the catalog shows categoryId example "NARRATIVE" and the user writes
       "narrative" or "Narrative", use "NARRATIVE".
 
-SC-2  MULTI-ZONE QUERIES
+HC-10  NO INVENTED THRESHOLDS
+    Never invent numeric thresholds in WHERE clauses or JMESPath (e.g. "< 50", "> 100") UNLESS the user explicitly specifies an exact number in their query.
+    If the user asks for qualitative states (e.g. "clean x", "quiet x", "cheap x") without providing numbers:
+    - To find extremes, use ORDER BY field ASC/DESC LIMIT N or min_by/max_by.
+    - To filter by "good/bad/safe" conditions, use catalog-documented boolean or enum fields (e.g. alertActive=false, status='ok').
+</hard_constraints>
+
+<soft_constraints>
+SC-1  MULTI-ZONE QUERIES
       When an endpoint's description documents a ?zoneIds= parameter for multi-zone queries,
       pass zones from a prior task as: ?zoneIds={{{{prev[*].zoneId | join(',', @)}}}}
 
-SC-3  PATH PARAMETER INJECTION
+SC-2  PATH PARAMETER INJECTION
       Inject ids and keys directly into the url string using chaining syntax.
       Never put them in the input field.
 
-SC-4  SQL VS JMESPATH DECISION
+SC-3  SQL VS JMESPATH DECISION
       Use JMESPath for: filter, first/last match, comma-join of a string field.
       Use SQL for: join of two datasets, avg/sum/count/grouping, ranking, set intersect/diff,
       or any operation JMESPath cannot express in one expression.
@@ -564,6 +679,7 @@ Before writing the final JSON, verify every item below:
   □ No two tasks call the same url+service.
   □ SQL tasks have url="" and input={{"sql_query":"..."}}.
   □ Non-SQL tasks have a non-empty url starting with http://.
+  □ COMBINE phase matches tasks: "single task"→1 task, SQL operation→last task is SQL.
   □ If any catalog lookup failed in PHASE 2, tasks is an empty array [].
 </self_check>
 
@@ -579,7 +695,9 @@ Syntax: {{{{task_name<expr>}}}}  — expr is evaluated on the JSON result of tas
   Multi-zone join:           {{{{t[*].zoneId | join(',', @)}}}}    ← string fields only
   Filter + join:             {{{{t[?status=='open'].zoneId | join(',', @)}}}}
   OR filter + join:          {{{{t[?a=='x' || a=='y'].zoneId | join(',', @)}}}}
-  Min element:               {{{{min_by(t, &field).id}}}}
+    Min element:               {{{{min_by(t, &field)}}}}
+    Max element:               {{{{max_by(t, &field)}}}}
+    Sort + top-N:              {{{{t | sort_by(@, &field)[:3]}}}}
   Sort + first:              {{{{t | sort_by(@, &field)[0].id}}}}
 
 CRITICAL: join(',', @) works only on string fields. Never use it on integers.
@@ -599,9 +717,11 @@ Never use {{{{}}}} placeholders inside the sql_query string.
 NEVER use SQL reserved words as task_name (e.g. order, group, select, index, table, user).
 
 Common patterns:
-  Sort + top-N:   SELECT * FROM get_items ORDER BY field ASC LIMIT 1
+  Sort + top-N:   SELECT * FROM t ORDER BY field ASC LIMIT 1
+                  SELECT * FROM t ORDER BY field DESC LIMIT 1
+                  SELECT * FROM t ORDER BY field ASC LIMIT N
+  Aggregate:      SELECT MIN(field), MAX(field), AVG(field) FROM t
   Join:           SELECT a.*, b.field FROM task_a a JOIN task_b b ON a.zoneId = b.zoneId
-  Aggregate:      SELECT zoneId, AVG(reading) AS avg FROM get_sensors GROUP BY zoneId
   Intersect:      SELECT * FROM task_a WHERE zoneId IN (SELECT zoneId FROM task_b WHERE cond)
   Difference:     SELECT * FROM task_a WHERE zoneId NOT IN (SELECT zoneId FROM task_b)
 </sql_reference>"""
@@ -667,6 +787,25 @@ QUERY:
         return response, latency
 
     # ------------------------------------------------------------------
+    # EMPTY PLAN DETECTOR (triage delegato al Designer)
+    # ------------------------------------------------------------------
+
+    def _empty_plan_detected(self, plan: dict) -> bool:
+        """
+        Rileva un piano senza task eseguibili. La CLASSIFICAZIONE del motivo
+        (out-of-domain, ambigua, invalida, ...) e' delegata a
+        Designer.analyze() che fa una sola chiamata LLM e decide anche se
+        progettare un contratto o meno.
+
+        Condizione: tasks e' una lista vuota. Un plan malformato ({}) ha
+        tasks assente e non attiva il fallback.
+        """
+        if not isinstance(plan, dict):
+            return False
+        tasks = plan.get("tasks")
+        return isinstance(tasks, list) and len(tasks) == 0
+
+    # ------------------------------------------------------------------
     # PARSING JSON
     # ------------------------------------------------------------------
 
@@ -719,8 +858,8 @@ QUERY:
           get_bins.location
           get_bins[0].id
           get_attractions[?status=='open'] | [0].zoneId
-          get_attractions[*].zoneId | join(',', @)
-          get_sensors[?alertActive==`true`].zoneId | join(',', @)
+          get_attractions[*].zoneId | join(',',@)
+          get_sensors[?alertActive==`true`].zoneId | join(',',@)
           get_lights | sort_by(@, &brightness)[0].id
         """
         # Rimuove suffissi legacy
@@ -982,23 +1121,9 @@ QUERY:
         tail = "..." if len(sql_query) > 120 else ""
         print(f"[SQL] Task '{task_name}': {sql_query[:120]}{tail}")
 
-        # ── Edge Case 2: sanifica nomi tabella che sono parole riservate SQL ─
-        SQL_RESERVED = {
-            "order","group","select","where","from","join","table","user",
-            "index","key","column","database","schema","view","limit","offset",
-            "having","union","insert","update","delete","create","drop","alter",
-            "with","as","on","in","not","and","or","is","null","true","false",
-        }
-
-        def safe_tbl(name: str) -> str:
-            """Aggiunge prefisso t_ se il nome è una keyword SQL riservata."""
-            return f"t_{name}" if name.lower() in SQL_RESERVED else name
-
-        # Se il task_name stesso è riservato, rinomina anche nella query
-        safe_task_name = safe_tbl(task_name)
-        if safe_task_name != task_name:
-            print(f"[SQL WARN] task_name '{task_name}' è una keyword SQL — rinominato '{safe_task_name}' nella query")
-            sql_query = re.sub(rf'\b{re.escape(task_name)}\b', safe_task_name, sql_query)
+        # Non riscrivere la query SQL con regex: può corrompere token validi
+        # (es. ORDER BY). Se il task_name è una keyword riservata, la query
+        # fallirà e verrà gestita dal blocco except.
 
         try:
             conn = duckdb.connect()   # database in-memory, isolato per ogni task
@@ -1014,23 +1139,20 @@ QUERY:
         try:
             # Registra ogni risultato precedente come tabella DuckDB
             for tbl, data in context.items():
-                safe_name = safe_tbl(tbl)
-                # Se il nome era riservato, aggiorna la query per usare il nome sicuro
-                if safe_name != tbl:
-                    sql_query = re.sub(rf'\b{re.escape(tbl)}\b', safe_name, sql_query)
+                escaped_tbl = str(tbl).replace('"', '""')
 
                 if isinstance(data, list):
                     if not data:
                         # Lista vuota: registra tabella sentinel — colonne sconosciute
                         # producono Binder Error se la query le referenzia,
                         # gestito nel blocco except come graceful empty result
-                        conn.execute(f'CREATE TABLE "{safe_name}" (dummy VARCHAR)')
+                        conn.execute(f'CREATE TABLE "{escaped_tbl}" (dummy VARCHAR)')
                     else:
                         df = pd.DataFrame(data)
-                        conn.register(safe_name, df)
+                        conn.register(str(tbl), df)
                 elif isinstance(data, dict):
                     df = pd.DataFrame([data])
-                    conn.register(safe_name, df)
+                    conn.register(str(tbl), df)
 
             rel  = conn.execute(sql_query)
             rows = rel.fetchall()
@@ -1254,6 +1376,44 @@ QUERY:
             print("[PENSIERO DI QWEN 3.5]:")
             print(plan.get("reasoning"))
             print("🧠 " * 20 + "\n")
+
+        # Piano con tasks=[]: il planner non ha prodotto alcuna esecuzione.
+        # Delega al Designer che in UNA sola chiamata LLM:
+        #   (a) classifica il motivo  → category ∈ {OUT_OF_DOMAIN, AMBIGUOUS,
+        #                                            INVALID, UNKNOWN}
+        #   (b) se OUT_OF_DOMAIN, progetta anche il contratto mancante;
+        #       altrimenti service_contract = null.
+        if self._empty_plan_detected(plan):
+            print("\n[ROUTING] Piano vuoto rilevato. "
+                  "Attivazione Designer (triage + design)...")
+            analysis = self.designer.analyze(
+                query=query,
+                plan_reasoning=plan.get("reasoning", ""),
+                discovered_services=disc_services,
+                discovered_capabilities=disc_caps,
+                input_files=analyzed_files,
+            )
+            category = analysis.get("category", "UNKNOWN")
+            contract = analysis.get("service_contract")
+
+            # Routing in base alla categoria: solo OUT_OF_DOMAIN espone un
+            # contratto suggerito; gli altri casi restituiscono errore al
+            # client con la justification del triage.
+            if category == "OUT_OF_DOMAIN" and isinstance(contract, dict):
+                error_msg = ("Query out of domain. The system requires "
+                             "services not currently available.")
+            else:
+                error_msg = (f"Empty plan classified as {category}: "
+                             f"{analysis.get('justification', '')}")
+
+            return {
+                "execution_plan":          plan,
+                "execution_results":       [],
+                "error":                   error_msg,
+                "empty_plan_category":     category,
+                "empty_plan_justification": analysis.get("justification", ""),
+                "suggested_api_contracts": [contract] if isinstance(contract, dict) else [],
+            }
 
         available_ids = [s["_id"] for s in disc_services]
         # Mappa name → _id per auto-fix quando il modello usa il name come service_id
